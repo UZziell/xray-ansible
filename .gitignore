@@ -1,0 +1,5 @@
+**/inventory.y*ml
+**/hosts
+venv/
+play.yml
+roles/**/var/www
