@@ -1,0 +1,114 @@
+# # Restrict access to the website by IP or wrong domain name and return 400
+# server {
+#     listen unix:/dev/shm/h1.sock proxy_protocol default_server;
+#     listen unix:/dev/shm/h2c.sock http2 proxy_protocol default_server;
+#     set_real_ip_from unix:;
+#     real_ip_header proxy_protocol;
+#     server_name _;
+#     return 400;
+# }
+
+## HTTP1 UDS listener
+server {
+    listen unix:/dev/shm/nginx-h1.sock proxy_protocol default_server; # HTTP/1.1 server monitor process and enable PROXY protocol reception
+    server_name _; # Change to your own domain name(s)
+
+    set_real_ip_from unix:;
+    real_ip_header proxy_protocol;
+
+    location / {
+        # add_header Strict-Transport-Security "max-age=31536000; includeSubDomains; preload" always; # enable HSTS
+        root /var/www/html; # Modify to the path of the WEB file stored by yourself (check the permissions)
+        index index.html index.htm;
+    }
+}
+
+## HTTP2 UDS listener
+server {
+    listen unix:/dev/shm/nginx-h2c.sock http2 proxy_protocol default_server; # H2C server monitor process and enable PROXY protocol reception
+    server_name _; # Change to your own domain name(s) (don't forget to add the certificates to xray config)
+
+    set_real_ip_from unix:;
+    set_real_ip_from 127.0.0.1/32;
+    set_real_ip_from 103.21.244.0/22;
+    set_real_ip_from 103.22.200.0/22;
+    set_real_ip_from 103.31.4.0/22;
+    set_real_ip_from 104.16.0.0/12;
+    set_real_ip_from 108.162.192.0/18;
+    set_real_ip_from 131.0.72.0/22;
+    set_real_ip_from 141.101.64.0/18;
+    set_real_ip_from 162.158.0.0/15;
+    set_real_ip_from 172.64.0.0/13;
+    set_real_ip_from 173.245.48.0/20;
+    set_real_ip_from 188.114.96.0/20;
+    set_real_ip_from 190.93.240.0/20;
+    set_real_ip_from 197.234.240.0/22;
+    set_real_ip_from 198.41.128.0/17;
+    set_real_ip_from 2400:cb00::/32;
+    set_real_ip_from 2606:4700::/32;
+    set_real_ip_from 2803:f800::/32;
+    set_real_ip_from 2405:b500::/32;
+    set_real_ip_from 2405:8100::/32;
+    set_real_ip_from 2c0f:f248::/32;
+    set_real_ip_from 2a06:98c0::/29;
+    real_ip_header proxy_protocol;
+
+    # grpc settings
+    grpc_read_timeout 1h;
+    grpc_send_timeout 1h;
+    grpc_set_header X-Real-IP $remote_addr;
+
+    # Decoy website
+    location / {
+        # add_header Strict-Transport-Security "max-age=31536000; includeSubDomains; preload" always; # enable HSTS
+        root /var/www/html; # Modify to the path of the WEB file stored by yourself (check the permissions)
+        index index.html index.htm;
+    }
+
+    location /trgrpc {
+        # POST returns 404 when negotiation fails
+        if ($request_method != "POST") {
+            return 404;
+        }
+        client_body_buffer_size 1m;
+        client_body_timeout 1h;
+        client_max_body_size 0;
+        grpc_pass grpc://127.0.0.1:3001;
+
+    }
+
+    location /vlgrpc {
+        # return 404 if HTTP Method is not POST
+        if ($request_method != "POST") {
+            return 404;
+        }
+        client_body_buffer_size 1m;
+        client_body_timeout 1h;
+        client_max_body_size 0;
+        grpc_pass grpc://127.0.0.1:3002;
+
+    }
+
+    location /vmgrpc {
+        # return 404 if HTTP Method is not POST
+        if ($request_method != "POST") {
+            return 404;
+        }
+        client_body_buffer_size 1m;
+        client_body_timeout 1h;
+        client_max_body_size 0;
+        grpc_pass grpc://127.0.0.1:3003;
+
+    }
+
+    location /ssgrpc {
+        # return 404 if HTTP Method is not POST
+        if ($request_method != "POST") {
+            return 404;
+        }
+        client_body_buffer_size 1m;
+        client_body_timeout 1h;
+        client_max_body_size 0;
+        grpc_pass grpc://127.0.0.1:3004;
+    }
+}

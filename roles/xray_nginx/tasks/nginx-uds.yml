@@ -1,0 +1,44 @@
+---
+# - name: copy websites
+#   copy:
+#     src: files/var/www/
+#     dest: /var/www/
+
+- name: change worker connections
+  ansible.builtin.lineinfile:
+    path: /etc/nginx/nginx.conf
+    regexp: "worker_connections"
+    line: worker_connections 8192;
+
+- name: Check if /etc/nginx/sites-enabled exists
+  stat:
+    path: /etc/nginx/sites-enabled
+  register: sites_enabled_stat
+
+- name: Set default path to /etc/nginx/sites-enabled
+  set_fact:
+    nginx_config_dir: /etc/nginx/sites-enabled
+  when: sites_enabled_stat.stat.isdir
+
+- name: Set default path to /etc/nginx/conf.d
+  set_fact:
+    nginx_config_dir: /etc/nginx/conf.d
+  when: not sites_enabled_stat.stat.isdir
+
+- name: install nginx config
+  template:
+    src: nginx-uds.conf.j2
+    dest: "{{nginx_config_dir}}/uds.conf"
+    owner: root
+    group: root
+    mode: "0644"
+    # backup: true
+    # validate: nginx -t -c %s
+
+- name: check nginx config
+  command: nginx -t
+  notify:
+    - remove nginx socket files
+    - restart nginx service
+  tags:
+    - restart-services

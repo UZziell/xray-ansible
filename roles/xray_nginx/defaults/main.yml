@@ -1,0 +1,8 @@
+---
+XRAY_LOG_LEVEL: warning
+TROJAN_SHADOWSOCKS_PASSWORD: deadcantdance2012
+VLESS_VMESS_UUID: a5167fe0-ffa7-48f6-85eb-5426b2b2754d
+
+DOMAINS:
+  - openjsplatform.org
+  - desdemona.live

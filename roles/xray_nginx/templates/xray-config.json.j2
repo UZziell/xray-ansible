@@ -1,0 +1,1005 @@
+{
+  "log": {
+    // "access": "/var/log/xray/access.log",
+    // "error": "/var/log/xray/error.log",
+    "loglevel": "{{ XRAY_LOG_LEVEL }}"
+  },
+  "inbounds": [
+    {
+      "port": 443, // This is TLS entrypoint. This entrypoint does the SSL Termination then routes the request based on the Path or ALPN type.
+      "protocol": "vless",
+      // "protocol": "trojan",
+      "settings": {
+        "clients": [
+          {
+            "id": "{{ VLESS_VMESS_UUID }}", // Change to your own UUID
+            // "password": "{{ TROJAN_SHADOWSOCKS_PASSWORD }}", // if `"protocol": "trojan"`
+            // "flow": "xtls-rprx-direct"
+            "flow": "xtls-rprx-vision",
+            "email": "vless@vision"
+          }
+        ],
+        "decryption": "none",
+        "fallbacks": [
+          // H2
+          {
+            // if the SNI was `trh2o.EXAMPLE.COM`, pass it to trojan-h2 listener
+            "name": "tr.google.com",
+            "alpn": "h2",
+            "dest": "@trojan-h2"
+          },
+          {
+            // if the SNI was `vlh2o.EXAMPLE.COM`, pass it to vless-h2 listener
+            "name": "vl.google.com",
+            "alpn": "h2",
+            "dest": "@vless-h2"
+          },
+          // {
+          //   // if the SNI was `vmh2o.EXAMPLE.COM`, pass it to vmess-h2 listener
+          //   "name": "vmh2o.thisisthis.info",
+          //   "alpn": "h2",
+          //   "dest": "@vmess-h2"
+          // },
+          // {
+          //   // if the SNI was `ssh2o.EXAMPLE.COM`, pass it to shadowsocks-h2 listener
+          //   "name": "ssh2o.thisisthis.info",
+          //   "alpn": "h2",
+          //   "dest": 4003
+          // },
+          // // Websocket
+          // {
+          //   // if the path was `/vlws`, pass it to vless-ws listener
+          //   "path": "/vlws",
+          //   "dest": "@vless-ws",
+          //   "xver": 2 //Enable the sending of the PROXY protocol, and send the real source IP and port to the following vmess+ws application. 1 or 2 indicates the PROXY protocol version. Consistent with the following, it is recommended to configure 2.
+          // },
+          // {
+          //   // if the path was `/vmws`, pass it to vmess-ws listener
+          //   "path": "/vmws",
+          //   "dest": "@vmess-ws",
+          //   "xver": 2
+          // },
+          {
+            // if the path was `/trws`, pass it to trojan-ws listener
+            "path": "/trws",
+            "dest": "@trojan-ws",
+            "xver": 2
+          },
+          // {
+          //   // if the path was `/ssws`, pass it to port 4001 (shadowsocks-ws listener)
+          //   "path": "/ssws",
+          //   "dest": 4001
+          // },
+          // // TCP + http obfs
+          // {
+          //   // if the path was `/vltc`, pass it to vless-tcp listener
+          //   "path": "/vltc",
+          //   "dest": "@vless-tcp",
+          //   "xver": 2
+          // },
+          // {
+          //   // if the path was `/vmtc`, pass it to vmess-tcp listener
+          //   "path": "/vmtc",
+          //   "dest": "@vmess-tcp",
+          //   "xver": 2
+          // },
+          // {
+          //   // if the path was `/sstc`, pass it to port 4002 (shadowsocks-tcp listener)
+          //   "path": "/sstc",
+          //   "dest": 4002
+          // },
+          {
+            // if the request's ALPN was HTTP2, pass it to trojan-tcp. (Also from trojan-tcp fallback to Nginx HTTP2)
+            "alpn": "h2",
+            "dest": "@trojan-tcp",
+            "xver": 2
+          },
+          {
+            // if not any other condition, pass it to Nginx HTTP1.1 listener
+            "dest": "/dev/shm/nginx-h1.sock",
+            "xver": 2
+          }
+        ]
+      },
+      "streamSettings": {
+        // If XTLS Vision is enabled, "security" must be "tls"
+        // If XTLS Direct is enabled, "security" must be "xtls"
+        "security": "tls",
+        // If XTLS Direct is enabled, "tlsSettings" should also be changed to "xtlsSettings"
+        "tlsSettings": {
+          "certificates": [
+            {% for domain in DOMAINS %}
+              {
+                "ocspStapling": 3600,
+                "certificateFile": "/etc/letsencrypt/live/{{domain}}/fullchain.pem",
+                "keyFile": "/etc/letsencrypt/live/{{domain}}/privkey.pem"
+              }{% if not loop.last %},{% endif %}
+            {% endfor %}
+          ],
+          "minVersion": "1.2", //Xray version is not less than v1.1.4 to support configuring the minimum TLS version. Currently V2Ray does not support it. If you use V2Ray as the server, you must delete this configuration.
+          "cipherSuites": "TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256:TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256:TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384:TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384:TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256:TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256", //Xray版本不小于v1.1.4才支持配置密码套件（若无RSA证书，可删除所有RSA算法的密码套件；无ECC证书, to remove cipher suites for all ECDSA algorithms.). Currently V2Ray does not support it. If you use V2Ray as the server, you must delete this configuration.
+          "alpn": [
+            "h2", //Enabling h2 connection needs to configure h2 fallback, otherwise inconsistency (streaking) is easily detected by the wall and blocked.
+            "http/1.1" //Enabling http/1.1 connection needs to configure http/1.1 fallback, otherwise inconsistency (streaking) is easily detected by the wall and blocked.
+          ]
+        }
+      },
+      "sniffing": {
+        "enabled": true,
+        "destOverride": ["http", "tls"]
+      }
+    },
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    //                                  WebSocket (VLESS - VMESS - TROJAN - ShadowSocks)                                  //
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    {
+      "listen": "@vless-ws",
+      "protocol": "vless",
+      "settings": {
+        "clients": [
+          {
+            "id": "{{ VLESS_VMESS_UUID }}", //Change to your own UUID
+            "email": "vless@ws"
+          }
+        ],
+        "decryption": "none"
+      },
+      "streamSettings": {
+        "network": "ws",
+        "security": "none",
+        "wsSettings": {
+          "acceptProxyProtocol": true, //Enable PROXY protocol reception, receive the real source IP and port
+          "path": "/vlws" // If you change path, it should also be changed in fallback rules
+        }
+      },
+      "sniffing": {
+        "enabled": true,
+        "destOverride": ["http", "tls"]
+      }
+    },
+    {
+      "listen": "@vmess-ws",
+      "protocol": "vmess",
+      "settings": {
+        "clients": [
+          {
+            "id": "{{ VLESS_VMESS_UUID }}", //Change to your own UUID
+            "level": 0,
+            "email": "vmess@ws"
+          }
+        ]
+      },
+      "streamSettings": {
+        "network": "ws",
+        "security": "none",
+        "wsSettings": {
+          "acceptProxyProtocol": true,
+          "path": "/vmws" //If you change path, it should also be changed in fallback rules
+        }
+      },
+      "sniffing": {
+        "enabled": true,
+        "destOverride": ["http", "tls"]
+      }
+    },
+    {
+      "listen": "@trojan-ws",
+      "protocol": "trojan",
+      "settings": {
+        "clients": [
+          {
+            "password": "{{ TROJAN_SHADOWSOCKS_PASSWORD }}", //Change to your own password
+            "email": "trojan@ws"
+          }
+        ]
+      },
+      "streamSettings": {
+        "network": "ws",
+        "security": "none",
+        "wsSettings": {
+          "acceptProxyProtocol": true,
+          "path": "/trws" //If you change path, it should also be changed in fallback rules
+        }
+      },
+      "sniffing": {
+        "enabled": true,
+        "destOverride": ["http", "tls"]
+      }
+    },
+    {
+      "tag": "shadowsocks-ws",
+      "listen": "127.0.0.1",
+      "port": 4001,
+      "protocol": "shadowsocks",
+      "settings": {
+        "method": "chacha20-ietf-poly1305",
+        "password": "{{ TROJAN_SHADOWSOCKS_PASSWORD }}", //Change to your own password
+        "email": "ss@ws"
+      },
+      "streamSettings": {
+        "network": "ws",
+        "security": "none",
+        "wsSettings": {
+          "path": "/ssws" //If you change path, it should also be changed in fallback rules
+        }
+      },
+      "sniffing": {
+        "enabled": true,
+        "destOverride": ["http", "tls"]
+      }
+    },
+    // {
+    //   "listen": "/dev/shm/vless-ws.socket,0666",
+    //   "protocol": "vless",
+    //   "settings": {
+    //     "clients": [
+    //       {
+    //         "id": "{{ VLESS_VMESS_UUID }}", //Change to your own UUID
+    //         "email": "vless@ws"
+    //       }
+    //     ],
+    //     "decryption": "none"
+    //   },
+    //   "streamSettings": {
+    //     "network": "ws",
+    //     "security": "none",
+    //     "wsSettings": {
+    //       // "acceptProxyProtocol": true, //Enable PROXY protocol reception, receive the real source IP and port
+    //       "path": "/vlws" // If you change path, it should also be changed in fallback rules
+    //     }
+    //   },
+    //   "sniffing": {
+    //     "enabled": true,
+    //     "destOverride": ["http", "tls"]
+    //   }
+    // },
+    // {
+    //   "listen": "/dev/shm/vmess-ws.socket,0666",
+    //   "protocol": "vmess",
+    //   "settings": {
+    //     "clients": [
+    //       {
+    //         "id": "{{ VLESS_VMESS_UUID }}", //Change to your own UUID
+    //         "level": 0,
+    //         "email": "vmess@ws"
+    //       }
+    //     ]
+    //   },
+    //   "streamSettings": {
+    //     "network": "ws",
+    //     "security": "none",
+    //     "wsSettings": {
+    //       // "acceptProxyProtocol": true,
+    //       "path": "/vmws" //If you change path, it should also be changed in fallback rules
+    //     }
+    //   },
+    //   "sniffing": {
+    //     "enabled": true,
+    //     "destOverride": ["http", "tls"]
+    //   }
+    // },
+    // {
+    //   "listen": "/dev/shm/trojan-ws.socket,0666",
+    //   "protocol": "trojan",
+    //   "settings": {
+    //     "clients": [
+    //       {
+    //         "password": "{{ TROJAN_SHADOWSOCKS_PASSWORD }}", //Change to your own password
+    //         "email": "trojan@ws"
+    //       }
+    //     ]
+    //   },
+    //   "streamSettings": {
+    //     "network": "ws",
+    //     "security": "none",
+    //     "wsSettings": {
+    //       // "acceptProxyProtocol": true,
+    //       "path": "/trws" //If you change path, it should also be changed in fallback rules
+    //     }
+    //   },
+    //   "sniffing": {
+    //     "enabled": true,
+    //     "destOverride": ["http", "tls"]
+    //   }
+    // },
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    //                               TCP + http obfs (VLESS - VMESS - TROJAN - ShadowSocks)                               //
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    {
+      "listen": "@trojan-tcp", //trojan+tcp listening process
+      "protocol": "trojan",
+      "settings": {
+        "clients": [
+          {
+            "password": "{{ TROJAN_SHADOWSOCKS_PASSWORD }}",
+            "email": "trojan@tcp"
+          }
+        ],
+        "fallbacks": [
+          {
+            // if it was not a valid trojan reuqest, for example the trojan password was wrong, pass it to the NGINX HTTP2 cleartext socket listener
+            "dest": "/dev/shm/nginx-h2c.sock",
+            "xver": 2 //Enable PROXY protocol sending, and send the real source IP and port to Nginx. 1 or 2 indicates the PROXY protocol version. Consistent with the above, configuration 2 is recommended.
+          }
+        ]
+      },
+      "streamSettings": {
+        "network": "tcp",
+        "security": "none",
+        "tcpSettings": {
+          "acceptProxyProtocol": true
+        }
+      },
+      "sniffing": {
+        "enabled": true,
+        "destOverride": ["http", "tls"]
+      }
+    },
+    {
+      "listen": "@vless-tcp",
+      "protocol": "vless",
+      "settings": {
+        "clients": [
+          {
+            "id": "{{ VLESS_VMESS_UUID }}",
+            "email": "vless@tcp"
+          }
+        ],
+        "decryption": "none"
+      },
+      "streamSettings": {
+        "network": "tcp",
+        "security": "none",
+        "tcpSettings": {
+          "acceptProxyProtocol": true,
+          "header": {
+            "type": "http",
+            "request": {
+              "path": ["/vltc"]
+            }
+          }
+        }
+      },
+      "sniffing": {
+        "enabled": true,
+        "destOverride": ["http", "tls"]
+      }
+    },
+    {
+      "listen": "@vmess-tcp",
+      "protocol": "vmess",
+      "settings": {
+        "clients": [
+          {
+            "id": "{{ VLESS_VMESS_UUID }}",
+            "level": 0,
+            "email": "vmess@tcp"
+          }
+        ]
+      },
+      "streamSettings": {
+        "network": "tcp",
+        "security": "none",
+        "tcpSettings": {
+          "acceptProxyProtocol": true,
+          "header": {
+            "type": "http",
+            "request": {
+              "path": ["/vmtc"]
+            }
+          }
+        }
+      },
+      "sniffing": {
+        "enabled": true,
+        "destOverride": ["http", "tls"]
+      }
+    },
+    {
+      "tag": "shadowsocks-tcp",
+      "listen": "127.0.0.1",
+      "port": 4002,
+      "protocol": "shadowsocks",
+      "settings": {
+        "method": "chacha20-ietf-poly1305",
+        "password": "{{ TROJAN_SHADOWSOCKS_PASSWORD }}",
+        "email": "ss@tcp"
+      },
+      "streamSettings": {
+        "network": "tcp",
+        "security": "none",
+        "tcpSettings": {
+          "header": {
+            "type": "http",
+            "request": {
+              "path": ["/sstc"]
+            }
+          }
+        }
+      },
+      "sniffing": {
+        "enabled": true,
+        "destOverride": ["http", "tls"]
+      }
+    },
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    //        GRPC (VLESS - VMESS - TROJAN - SHADOWSOCKS) (Nginx routes to them based on `serviceName`(HTTP2 Path) )      //
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    {
+      "tag": "trojan-grpc",
+      "listen": "127.0.0.1", //Only listen on localhost
+      "port": 3001,
+      "protocol": "trojan",
+      "settings": {
+        "clients": [
+          {
+            "password": "{{ TROJAN_SHADOWSOCKS_PASSWORD }}",
+            "email": "trojan@grpc"
+          }
+        ]
+      },
+      "streamSettings": {
+        "network": "grpc",
+        "security": "none",
+        "grpcSettings": {
+          "serviceName": "trgrpc" //If you change `serviceName`, it should also be changed in Nginx's config file
+        }
+      }
+    },
+    {
+      "tag": "vless-grpc",
+      "listen": "127.0.0.1", //Only listen on localhost
+      "port": 3002,
+      "protocol": "vless",
+      "settings": {
+        "clients": [
+          {
+            "id": "{{ VLESS_VMESS_UUID }}",
+            "email": "vless@grpc"
+          }
+        ],
+        "decryption": "none"
+      },
+      "streamSettings": {
+        "network": "grpc",
+        "security": "none",
+        "grpcSettings": {
+          "serviceName": "vlgrpc" //If you change `serviceName`, it should also be changed in Nginx's config file
+        }
+      }
+    },
+    {
+      "tag": "vmess-grpc",
+      "listen": "127.0.0.1", //Only listen on localhost
+      "port": 3003,
+      "protocol": "vmess",
+      "settings": {
+        "clients": [
+          {
+            "id": "{{ VLESS_VMESS_UUID }}",
+            "level": 0,
+            "email": "vmess@grpc"
+          }
+        ]
+      },
+      "streamSettings": {
+        "network": "grpc",
+        "security": "none",
+        "grpcSettings": {
+          "serviceName": "vmgrpc" //If you change `serviceName`, it should also be changed in Nginx's config file
+        }
+      }
+    },
+    {
+      "listen": "127.0.0.1", //Only listen on localhost
+      "port": 3004,
+      "protocol": "shadowsocks",
+      "settings": {
+        "method": "chacha20-ietf-poly1305",
+        "password": "{{ TROJAN_SHADOWSOCKS_PASSWORD }}",
+        "email": "ss@grpc"
+      },
+      "streamSettings": {
+        "network": "grpc",
+        "security": "none",
+        "grpcSettings": {
+          "serviceName": "ssgrpc" //If you change `serviceName`, it should also be changed in Nginx's config file
+        }
+      },
+      "sniffing": {
+        "enabled": true,
+        "destOverride": ["http", "tls"]
+      }
+    },
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    //                                     H2 (VLESS - VMESS - TROJAN - SHADOWSOCKS)                                   //
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    {
+      "listen": "@trojan-h2",
+      "protocol": "trojan",
+      "settings": {
+        "clients": [
+          {
+            "password": "{{ TROJAN_SHADOWSOCKS_PASSWORD }}",
+            "email": "trojan@h2"
+          }
+        ]
+      },
+      "streamSettings": {
+        "network": "h2",
+        "security": "none",
+        "httpSettings": {
+          "path": "/trh2"
+        }
+      }
+    },
+    {
+      "listen": "@vless-h2",
+      "protocol": "vless",
+      "settings": {
+        "clients": [
+          {
+            "id": "{{ VLESS_VMESS_UUID }}",
+            "email": "vless@h2"
+          }
+        ],
+        "decryption": "none"
+      },
+      "streamSettings": {
+        "network": "h2",
+        "security": "none",
+        "httpSettings": {
+          "path": "/vlh2"
+        }
+      },
+      "sniffing": {
+        "enabled": true,
+        "destOverride": ["http", "tls"]
+      }
+    },
+    {
+      "listen": "@vmess-h2",
+      "protocol": "vmess",
+      "settings": {
+        "clients": [
+          {
+            "id": "{{ VLESS_VMESS_UUID }}",
+            "level": 0,
+            "email": "vmess@h2"
+          }
+        ]
+      },
+      "streamSettings": {
+        "network": "h2",
+        "security": "none",
+        "httpSettings": {
+          "path": "/vmh2"
+        }
+      },
+      "sniffing": {
+        "enabled": true,
+        "destOverride": ["http", "tls"]
+      }
+    },
+    {
+      "tag": "shadowsocks-h2",
+      "listen": "127.0.0.1",
+      "port": 4003,
+      "protocol": "shadowsocks",
+      "settings": {
+        "method": "chacha20-ietf-poly1305",
+        "password": "{{ TROJAN_SHADOWSOCKS_PASSWORD }}",
+        "email": "ss@h2"
+      },
+      "streamSettings": {
+        "network": "h2",
+        "security": "none",
+        "httpSettings": {
+          "path": "/ssh2"
+        }
+      },
+      "sniffing": {
+        "enabled": true,
+        "destOverride": ["http", "tls"]
+      }
+    },
+    {
+      "port": 2095, // this is http entrypoint, uncomment to enable vless-ws, vless-tcp, vmess-ws and vless-tcp on HTTP
+      "protocol": "vless",
+      "settings": {
+        "clients": [
+          {
+            "id": "{{ VLESS_VMESS_UUID }}",
+            "email": "vless@80"
+          }
+        ],
+        "fallbacks": [
+          {
+            "path": "/vlws",
+            "dest": "@vless-ws", // the same vmess-ws used in 443 TLS entrypint is used here as well
+            "xver": 2
+          },
+          {
+            "path": "/vmws",
+            "dest": "@vmess-ws",
+            "xver": 2
+          },
+          {
+            "path": "/vltc",
+            "dest": "@vless-tcp",
+            "xver": 2
+          },
+          {
+            "path": "/vmtc",
+            "dest": "@vmess-tcp",
+            "xver": 2
+          },
+          // {
+          //   "path": "/trws",
+          //   "dest": "@trojan-ws",
+          //   "xver": 2
+          // },
+          // {
+          //   "path": "/ssws",
+          //   "dest": 4001
+          // },
+          // {
+          //   "path": "/sstc",
+          //   "dest": 4002
+          // },
+          {
+            "dest": "/dev/shm/nginx-h1.sock", // defaults to Nginx HTTP1.1 listener
+            "xver": 2
+          }
+        ],
+        "decryption": "none"
+      },
+      "streamSettings": {
+        "network": "tcp",
+        "security": "none"
+      },
+      "sniffing": {
+        "enabled": true,
+        "destOverride": ["http", "tls"]
+      }
+    },
+    {
+      "port": 334,
+      "protocol": "vless",
+      "settings": {
+        "clients": [
+          {
+            "id": "{{ VLESS_VMESS_UUID }}",
+            "email": "vless@334"
+          }
+        ],
+        "decryption": "none",
+        "fallbacks": [
+          {
+            "dest": 443
+          }
+        ]
+      },
+      "streamSettings": {
+        "network": "tcp"
+      }
+    },
+    {
+      "port": 2053,
+      "protocol": "vless",
+      "settings": {
+        "clients": [
+          {
+            "id": "{{ VLESS_VMESS_UUID }}",
+            "email": "vless@334"
+          }
+        ],
+        "decryption": "none",
+        "fallbacks": [
+          {
+            "dest": 443
+          }
+        ]
+      },
+      "streamSettings": {
+        "network": "tcp"
+      }
+    },
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    //                                                                                                                    //
+    //                                               OTHER COMBINATIONS                                                   //
+    //                                                                                                                    //
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    {
+      "listen": "127.0.0.1",
+      "port": 62789,
+      "protocol": "dokodemo-door",
+      "settings": {
+        "address": "127.0.0.1"
+      },
+      "tag": "api",
+      "sniffing": null
+    },
+    {
+      "protocol": "vless",
+      "port": 5432,
+      "settings": {
+        "clients": [
+          {
+            "id": "{{ VLESS_VMESS_UUID }}",
+            "email": "vless@kcp"
+          }
+        ],
+        "decryption": "none"
+      },
+      "streamSettings": {
+        "network": "kcp",
+        "kcpSettings": {
+          "seed": "seed" // Optional
+        },
+        "mtu": 1360,
+        "uplinkCapacity": 5,
+        "downlinkCapacity": 12,
+        "congestion": false,
+        "header": {
+          "type": "utp"
+        }
+      }
+    },
+    {
+      "protocol": "vless",
+      "port": 6543,
+      "settings": {
+        "clients": [
+          {
+            "id": "{{ VLESS_VMESS_UUID }}",
+            "email": "vless@quic"
+          }
+        ],
+        "decryption": "none"
+      },
+      "streamSettings": {
+        "network": "quic",
+        "quicSettings": {
+          "security": "none",
+          "key": "",
+          "header": {
+            "type": "utp"
+          }
+        },
+        "security": "tls",
+        "tlsSettings": {
+          "certificates": [
+            {% for domain in DOMAINS %}
+              {
+                "ocspStapling": 3600,
+                "certificateFile": "/etc/ssl/{{domain}}/domain.pem",
+                "keyFile": "/etc/ssl/{{domain}}/domain-key.pem"
+              }{% if not loop.last %},{% endif %}
+            {% endfor %}
+          ]
+        }
+      }
+    },
+    {
+      "port": 2333,
+      "protocol": "vmess",
+      "settings": {
+        "clients": [
+          {
+            "id": "{{ VLESS_VMESS_UUID }}",
+            "email": "vmess@quic"
+          }
+        ],
+        "detour": {
+          "to": "quickdynamicPort"
+        }
+      },
+      "streamSettings": {
+        "network": "quic",
+        "quicSettings": {
+          "security": "none",
+          "key": "",
+          "header": {
+            "type": "utp"
+          }
+        },
+        "security": "tls",
+        "tlsSettings": {
+          "certificates": [
+            {% for domain in DOMAINS %}
+              {
+                "ocspStapling": 3600,
+                "certificateFile": "/etc/ssl/{{domain}}/domain.pem",
+                "keyFile": "/etc/ssl/{{domain}}/domain-key.pem"
+              }{% if not loop.last %},{% endif %}
+            {% endfor %}
+          ]
+        }
+      }
+    },
+    {
+      "protocol": "vmess",
+      "port": "45001-60000",
+      "tag": "quickdynamicPort",
+      "settings": {
+        "default": {
+          "level": 0
+        }
+      },
+      "allocate": {
+        "strategy": "random",
+        "concurrency": 2,
+        "refresh": 1
+      },
+      "streamSettings": {
+        "network": "quic",
+        "quicSettings": {
+          "security": "none",
+          "key": "",
+          "header": {
+            "type": "utp"
+          }
+        },
+        "security": "tls",
+        "tlsSettings": {
+          "certificates": [
+            {% for domain in DOMAINS %}
+              {
+                "ocspStapling": 3600,
+                "certificateFile": "/etc/ssl/{{domain}}/domain.pem",
+                "keyFile": "/etc/ssl/{{domain}}/domain-key.pem"
+              }{% if not loop.last %},{% endif %}
+            {% endfor %}
+          ]
+        }
+      }
+    },
+    {
+      "port": 37192,
+      "protocol": "vmess",
+      "settings": {
+        "clients": [
+          {
+            "id": "{{ VLESS_VMESS_UUID }}",
+            "email": "vmess@kcp-dynamicport",
+            "level": 0
+          }
+        ],
+        "detour": {
+          "to": "kcpdynamicPort"
+        }
+      },
+      "streamSettings": {
+        "network": "kcp",
+        "kcpSettings": {
+          "seed": "seed" // Optional
+        },
+        "mtu": 1360,
+        "uplinkCapacity": 5,
+        "downlinkCapacity": 12,
+        "congestion": false,
+        "header": {
+          "type": "utp"
+        }
+      }
+    },
+    {
+      "protocol": "vmess",
+      "port": "38000-45000",
+      "tag": "kcpdynamicPort",
+      "settings": {
+        "default": {
+          "level": 0
+        }
+      },
+      "allocate": {
+        "strategy": "random",
+        "concurrency": 2,
+        "refresh": 1
+      },
+      "streamSettings": {
+        "network": "kcp",
+        "kcpSettings": {
+          "seed": "seed" // Optional
+        },
+        "mtu": 1360,
+        "uplinkCapacity": 5,
+        "downlinkCapacity": 12,
+        "congestion": false,
+        "header": {
+          "type": "utp"
+        }
+      }
+    },
+    {
+      "protocol": "shadowsocks",
+      "port": 4891,
+      "settings": {
+        "method": "2022-blake3-aes-128-gcm",
+        "password": "x3L4zIkiDq0EIJ+owXEceQ==",
+        "email": "ss@blake3",
+        "network": "tcp,udp"
+      },
+      "sniffing": {
+        "enabled": true,
+        "destOverride": ["http", "tls"]
+      }
+    }
+  ],
+  "outbounds": [
+    // {
+    //   // A DNS Cache can be setup and added here to imporve performance (the corresponding rule should be uncommented)
+    //   "tag": "DNS-Internal",
+    //   "protocol": "dns",
+    //   "settings": {
+    //     "address": "127.0.0.53",
+    //     "port": 53
+    //   }
+    // },
+    {
+      "protocol": "freedom",
+      "settings": {}
+    },
+    {
+      "protocol": "blackhole",
+      "tag": "blackhole"
+    }
+  ],
+  // "api": {
+  //   "tag": "api",
+  //   "services": ["HandlerService", "LoggerService", "StatsService"]
+  // },
+  // "stats": {},
+  // "policy": {
+  //   "levels": {
+  //     "0": {
+  //       "statsUserUplink": false,
+  //       "statsUserDownlink": false
+  //     }
+  //   },
+  //   "system": {
+  //     "statsInboundUplink": true,
+  //     "statsInboundDownlink": true,
+  //     "statsOutboundUplink": true,
+  //     "statsOutboundDownlink": true
+  //   }
+  // },
+  "routing": {
+    "domainStrategy": "IPIfNonMatch",
+    "rules": [
+      // {
+      //   // DNS Cache rule
+      //   "type": "field",
+      //   "port": 53,
+      //   "network": "tcp,udp",
+      //   "outboundTag": "DNS-Internal"
+      // },
+      {
+        "type": "field", // Block BitTorrent protocol
+        "outboundTag": "blackhole",
+        "protocol": ["bittorrent"]
+      },
+      {
+        "type": "field",
+        "outboundTag": "blackhole",
+        "domain": ["ext:iran.dat:ir", "ext:iran.dat:other", "ext:iran.dat:ads"]
+      },
+      {
+        "type": "field",
+        "outboundTag": "blackhole",
+        "ip": ["geoip:ir"]
+      },
+      {
+        "type": "field",
+        "outboundTag": "blackhole",
+        "ip": ["geoip:private"]
+      },
+      {
+        "inboundTag": ["api"],
+        "outboundTag": "api",
+        "type": "field"
+      }
+    ]
+  }
+}

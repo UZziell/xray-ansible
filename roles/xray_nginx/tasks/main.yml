@@ -1,0 +1,64 @@
+---
+- name: Configure nginx for xray
+  import_tasks: nginx-uds.yml
+
+- name: install/upgrade xray via official script
+  become: true
+  ansible.builtin.shell: bash -c "$(curl -L https://github.com/XTLS/Xray-install/raw/main/install-release.sh)" @ install
+  register: xray_install_output
+- debug: msg={{xray_install_output.stdout_lines}}
+
+- name: Get latest iran-hosted-domains releases from GitHub API
+  ansible.builtin.uri:
+    url: https://api.github.com/repos/bootmortis/iran-hosted-domains/releases/latest
+    return_content: yes
+  register: latest_release
+
+- name: Extract download URL of iran.dat
+  ansible.builtin.set_fact:
+    download_url: "{{ latest_release.content | from_json | json_query('assets[?name==`iran.dat`].browser_download_url') | first }}"
+
+- name: Download iran.dat file and install it on server
+  ansible.builtin.get_url:
+    url: "{{ download_url }}"
+    dest: /usr/local/share/xray/iran.dat
+    force: true
+
+- name: enable bbr
+  sysctl:
+    name: "{{ item.name }}"
+    value: "{{ item.value }}"
+    state: present
+    sysctl_set: true
+  with_items:
+    - { name: "net.core.default_qdisc", value: "fq" }
+    - { name: "net.ipv4.tcp_congestion_control", value: "bbr" }
+
+- name: Ensure xray can read certbot directory
+  file:
+    path: "{{ item }}"
+    state: directory
+    mode: "0755"
+    recurse: yes
+  loop:
+    - /etc/letsencrypt/archive
+    - /etc/letsencrypt/live
+
+- name: Install xray.json config
+  template:
+    src: xray-config.json.j2
+    dest: /usr/local/etc/xray/config.json
+    owner: root
+    group: root
+    mode: "0644"
+    validate: xray run -test -c %s
+  register: xray_test_result
+  # notify:
+  #   - restart xray service
+
+- name: Ensure xray service is restarted
+  ansible.builtin.service:
+    name: xray
+    state: restarted
+  tags:
+    - restart-services
