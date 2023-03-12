@@ -1,0 +1,24 @@
+---
+PKGS_LIST:
+  - curl
+  - wget
+  - vim
+  - gnupg
+  - iptables
+  - iptables-persistent
+  - tmux
+  - tcpdump
+  - htop
+  - speedtest-cli
+  - nload
+  - vnstat
+  - netcat-traditional
+  - sudo
+  - cron
+  # - nginx
+  # - obfs4proxy
+  # - tor
+  # - privoxy
+  # - iperf3
+  # - fail2ban
+  # - python3-systemd

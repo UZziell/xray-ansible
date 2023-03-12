@@ -1,0 +1,22 @@
+---
+- name: Get public IPv4 address
+  uri:
+    url: "https://ipv4.icanhazip.com/"
+    return_content: true
+  register: ipv4_address_raw
+
+- name: Get public IPv6 address
+  uri:
+    url: "https://ipv6.icanhazip.com/"
+    return_content: true
+  register: ipv6_address_raw
+
+- name: Extract public IPv4 and IPv6 addresses
+  set_fact:
+    ipv4_address: "{{ ipv4_address_raw.content | regex_replace('\\n', '') }}"
+    ipv6_address: "{{ ipv6_address_raw.content | regex_replace('\\n', '') }}"
+
+- debug:
+    msg: |
+      {{ipv4_address}}
+      {{ipv6_address}}

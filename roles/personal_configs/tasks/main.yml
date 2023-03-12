@@ -1,0 +1,62 @@
+- name: customize bash and adding aliases
+  ansible.builtin.blockinfile:
+    path: $HOME/.bash_profile
+    block: |
+      # for setting history length see HISTSIZE and HISTFILESIZE in bash(1)
+      HISTSIZE=
+      HISTFILESIZE=
+      # export hist immedietly
+      shopt -s histappend                      # append to history, don't overwrite it
+      export PROMPT_COMMAND="history -a; history -c; history -r; $PROMPT_COMMAND"
+
+      # aliases
+      alias pingo="ping 1.1.1.1"
+      alias upup="sudo apt-get update && sudo apt-get upgrade -y"
+      alias ls='ls --color=auto'
+      alias lo='ls -ohA'
+      alias sreset="sudo systemctl restart"
+      alias sreload="sudo systemctl reload"
+      alias sstatus="sudo systemctl status"
+      alias sstop="sudo systemctl stop"
+      alias plz="sudo"
+
+      # @, automatically join tmux sesison or create one
+      if [[ -n "$PS1" ]] && [[ -z "$TMUX" ]] && [[ -n "$SSH_CONNECTION" ]]; then
+          tmux attach-session -t ssh_tmux || tmux new-session -s ssh_tmux
+      fi
+- name: add useful commands to bash_histroy
+  ansible.builtin.blockinfile:
+    path: $HOME/.bash_history
+    block: |
+      resolvectl reset-statistics
+      resolvectl statistics
+      resolvectl query docker.io
+      vnstat --days
+      vnstat --months
+      ss --no-header  --tcp -4 -o state established '( sport = :https )' | awk '{ print $4 }' | sort -n | uniq -c | sort -n
+      journalctl -u xray --since -24h | awk '{print $8}' | grep -Eo '[0-9]{1,3}(\.[0-9]{1,3}){3}' | sort -u | wc -l
+      journalctl -u xray --since -24h | awk '{print $8}' | grep -Eo '[0-9]{1,3}(\.[0-9]{1,3}){3}' | sort -u | less
+      iperf3 -s
+      rm -f /dev/shm/nginx*.sock || nginx -t && systemctl restart nginx
+      xray run -test -c /usr/local/etc/xray/config.json  && sreset xray
+      du -csh /{etc,home,opt,root,srv,var/www}  | sort -h
+      tar -cvf /tmp/$(date +%F-%H%M)--$(uname -n)--$(uname -r).tar /{etc,home,opt,root,srv,var/www,var/spool} > /tmp/tar.out 2> /tmp/tar.erorrs
+      journalctl -u xray --since -48h | grep accepted | awk '{print $8}' | grep -Po '(\d\d?\d?\.){3}\d\d?\d?'  | sort | uniq -d -c | sort -h | wc -l
+      journalctl -u xray --since -48h | grep accepted | awk '{print $8}' | grep -Po '(\d\d?\d?\.){3}\d\d?\d?'  | sort | uniq -d -c | sort -h
+      fail2ban-client unban -all
+      fail2ban-client restart
+      fail2ban-client status xray
+      openssl req -x509 -newkey rsa:2048 -keyout domain-key.pem -out domain.pem -sha256 -nodes -days 3650 -subj "/CN=google.com" -addext "subjectAltName = DNS:google.com, DNS:*.google.com"
+      openssl req -x509 -nodes -days 365 -newkey ec:<(openssl ecparam -name secp256k1) -keyout domain-key.pem -out domain.pem -subj "/CN=google.com"
+
+- name: configure tmux
+  ansible.builtin.lineinfile:
+    path: $HOME/.tmux.conf
+    line: setw -g mouse on
+    create: yes
+
+- name: configure vim
+  ansible.builtin.lineinfile:
+    path: $HOME/.vimrc
+    line: set paste
+    create: yes
