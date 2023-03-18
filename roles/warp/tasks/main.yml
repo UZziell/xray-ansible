@@ -86,7 +86,7 @@
   ansible.builtin.shell: |
     GOOGLE_CIDRS=$(curl -s https://www.gstatic.com/ipranges/goog.json | jq -r '.prefixes[]  | {ipv4Prefix,ipv6Prefix} | join("")' | sed ':a;N;$!ba;s/\n/,/g')
     CLOUDFRONT_CIDRS=$(curl -s https://ip-ranges.amazonaws.com/ip-ranges.json | jq -r '.prefixes[] | select(.service | match("CLOUDFRONT")) | {ip_prefix} | join(",") ' | sed ':a;N;$!ba;s/\n/,/g')
-    CLOUDFLARE_CIDRS=$(curl -s https://www.cloudflare.com/ips-v4;echo; curl -s https://www.cloudflare.com/ips-v6 | grep -v 162.158.0.0 | sed ':a;N;$!ba;s/\n/,/g')
+    CLOUDFLARE_CIDRS=$({ curl -s https://www.cloudflare.com/ips-v4;echo; curl -s https://www.cloudflare.com/ips-v6; } | grep -v 162.158.0.0 | sed ':a;N;$!ba;s/\n/,/g')
     cat <<-EOF
     PersistentKeepalive = 5
     
