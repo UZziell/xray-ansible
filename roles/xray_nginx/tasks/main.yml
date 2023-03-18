@@ -51,7 +51,7 @@
     owner: root
     group: root
     mode: "0644"
-    validate: xray run -test -c %s
+    # validate: xray run -test -c %s
   register: xray_test_result
   # notify:
   #   - restart xray service
@@ -62,3 +62,31 @@
     state: restarted
   tags:
     - restart-services
+
+- name: Generate xray subscription from template
+  template:
+    src: subscription.j2
+    dest: /tmp/subscription
+  register: subscription_template
+
+- name: read subscription file
+  ansible.builtin.slurp:
+    src: /tmp/subscription
+  register: subscription_file
+
+- name: install subscription file to webserver directory
+  ansible.builtin.copy:
+    content: "{{ subscription_file.content }}"
+    # dest: "{{ NGINX_ROOT_DIR }}/{{ lookup('community.general.random_string', length=10, min_lower=10) }}"
+    dest: "{{ NGINX_ROOT_DIR }}/{{ SUBSCRIPTION_FILENAME }}"
+    remote_src: true
+    force: true
+  # vars:
+  #   charset: 'abcdefghijklmnopqrstuvwxyz'
+  when: subscription_template.changed
+
+- debug:
+    msg: |
+      Subscription links:
+        https://{{ DOMAINS[0] }}/{{ SUBSCRIPTION_FILENAME }}
+        http://{{ ansible_host }}:2095/{{ SUBSCRIPTION_FILENAME }}

@@ -604,7 +604,7 @@
       }
     },
     {
-      "port": 2095, // this is http entrypoint, uncomment to enable vless-ws, vless-tcp, vmess-ws and vless-tcp on HTTP
+      "port": 80, // this is http entrypoint, uncomment to enable vless-ws, vless-tcp, vmess-ws and vless-tcp on HTTP
       "protocol": "vless",
       "settings": {
         "clients": [
@@ -661,6 +661,27 @@
       "sniffing": {
         "enabled": true,
         "destOverride": ["http", "tls"]
+      }
+    },
+    {
+      "port": 2095,
+      "protocol": "vless",
+      "settings": {
+        "clients": [
+          {
+            "id": "{{ VLESS_VMESS_UUID }}",
+            "email": "vless@2095"
+          }
+        ],
+        "decryption": "none",
+        "fallbacks": [
+          {
+            "dest": 80
+          }
+        ]
+      },
+      "streamSettings": {
+        "network": "tcp"
       }
     },
     {
@@ -773,8 +794,8 @@
             {% for domain in DOMAINS %}
               {
                 "ocspStapling": 3600,
-                "certificateFile": "/etc/ssl/{{domain}}/domain.pem",
-                "keyFile": "/etc/ssl/{{domain}}/domain-key.pem"
+                "certificateFile": "/etc/letsencrypt/live/{{domain}}/fullchain.pem",
+                "keyFile": "/etc/letsencrypt/live/{{ domain }}/privkey.pem"
               }{% if not loop.last %},{% endif %}
             {% endfor %}
           ]
@@ -810,8 +831,8 @@
             {% for domain in DOMAINS %}
               {
                 "ocspStapling": 3600,
-                "certificateFile": "/etc/ssl/{{domain}}/domain.pem",
-                "keyFile": "/etc/ssl/{{domain}}/domain-key.pem"
+                "certificateFile": "/etc/letsencrypt/live/{{domain}}/fullchain.pem",
+                "keyFile": "/etc/letsencrypt/live/{{ domain }}/privkey.pem"
               }{% if not loop.last %},{% endif %}
             {% endfor %}
           ]
@@ -847,8 +868,8 @@
             {% for domain in DOMAINS %}
               {
                 "ocspStapling": 3600,
-                "certificateFile": "/etc/ssl/{{domain}}/domain.pem",
-                "keyFile": "/etc/ssl/{{domain}}/domain-key.pem"
+                "certificateFile": "/etc/letsencrypt/live/{{domain}}/fullchain.pem",
+                "keyFile": "/etc/letsencrypt/live/{{ domain }}/privkey.pem"
               }{% if not loop.last %},{% endif %}
             {% endfor %}
           ]
