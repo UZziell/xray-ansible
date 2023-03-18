@@ -1,8 +1,13 @@
 ---
 XRAY_LOG_LEVEL: warning
-TROJAN_SHADOWSOCKS_PASSWORD: deadcantdance2012
-VLESS_VMESS_UUID: a5167fe0-ffa7-48f6-85eb-5426b2b2754d
+TROJAN_SHADOWSOCKS_PASSWORD: fbbdc2a8fd89f2a64f68fcc76b1aa4d8722afa33
+VLESS_VMESS_UUID: 654190e0-a2fd-4bc3-a037-5c99716ee50c
+
+NGINX_ROOT_DIR: /var/www/html
+SUBSCRIPTION_FILENAME: ssss99
+NGINX_PKGS_LIST:
+  - nginx
 
 DOMAINS:
-  - openjsplatform.org
-  - desdemona.live
+  - example.com
+  - example2.com
