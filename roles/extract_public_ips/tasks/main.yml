@@ -10,6 +10,7 @@
     url: "https://ipv6.icanhazip.com/"
     return_content: true
   register: ipv6_address_raw
+  ignore_errors: true
 
 - name: Extract public IPv4 and IPv6 addresses
   set_fact:
