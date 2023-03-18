@@ -1,6 +1,7 @@
 - name: customize bash and adding aliases
   ansible.builtin.blockinfile:
     path: $HOME/.bash_profile
+    create: true
     block: |
       # for setting history length see HISTSIZE and HISTFILESIZE in bash(1)
       HISTSIZE=
@@ -27,6 +28,7 @@
 - name: add useful commands to bash_histroy
   ansible.builtin.blockinfile:
     path: $HOME/.bash_history
+    create: true
     block: |
       resolvectl reset-statistics
       resolvectl statistics
@@ -53,10 +55,10 @@
   ansible.builtin.lineinfile:
     path: $HOME/.tmux.conf
     line: setw -g mouse on
-    create: yes
+    create: true
 
 - name: configure vim
   ansible.builtin.lineinfile:
     path: $HOME/.vimrc
     line: set paste
-    create: yes
+    create: true
