@@ -2,4 +2,5 @@
 **/hosts
 venv/
 play.yml
-roles/**/var/www
+roles/xray_nginx/files/var/www/*
+!roles/xray_nginx/files/var/www/html
