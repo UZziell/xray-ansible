@@ -1,6 +1,6 @@
 ---
 - name: Restart xray service
-  ansible.builtin.service:
+  ansible.builtin.systemd:
     name: xray
     state: restarted
 
@@ -13,6 +13,6 @@
     - /dev/shm/nginx-h2c.sock
 
 - name: Restart nginx service
-  ansible.builtin.service:
+  ansible.builtin.systemd:
     name: nginx
     state: restarted

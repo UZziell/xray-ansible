@@ -26,7 +26,7 @@
 
 
 # - name: disable default services
-#   ansible.builtin.service:
+#   ansible.builtin.systemd:
 #     name: "{{ item }}"
 #     state: stopped
 #     enabled: no

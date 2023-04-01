@@ -59,9 +59,12 @@
   #   - restart xray service
 
 - name: Ensure xray service is restarted
-  ansible.builtin.service:
+  ansible.builtin.systemd:
     name: xray
     state: restarted
+    enabled: true
+  register: service_result
+  failed_when: "'running' not in service_result.status.SubState"
   tags:
     - restart-services
 
@@ -79,12 +82,9 @@
 - name: Install subscription file to webserver directory
   ansible.builtin.copy:
     content: "{{ subscription_file.content }}"
-    # dest: "{{ nginx_root_dir }}/{{ lookup('community.general.random_string', length=10, min_lower=10) }}"
     dest: "{{ nginx_root_dir }}/{{ subscription_filename }}"
     remote_src: true
     force: true
-  # vars:
-  #   charset: 'abcdefghijklmnopqrstuvwxyz'
   when: subscription_template.changed
 
 - debug:
