@@ -6,7 +6,9 @@
   become: true
   ansible.builtin.shell: bash -c "$(curl -L https://github.com/XTLS/Xray-install/raw/main/install-release.sh)" @ install
   register: xray_install_output
-- debug: msg={{xray_install_output.stdout_lines}}
+
+- debug:
+    msg: "{{ xray_install_output.stdout_lines }}"
 
 - name: Get latest iran-hosted-domains releases from GitHub API
   ansible.builtin.uri:
@@ -25,27 +27,27 @@
     force: true
 
 - name: Enable bbr
-  sysctl:
+  ansible.posix.sysctl:
     name: "{{ item.name }}"
     value: "{{ item.value }}"
     state: present
     sysctl_set: true
   with_items:
-    - { name: net.core.default_qdisc, value: fq }
+    # - { name: net.core.default_qdisc, value: fq }
     - { name: net.ipv4.tcp_congestion_control, value: bbr }
 
 - name: Ensure xray can read certbot directory
-  file:
+  ansible.builtin.file:
     path: "{{ item }}"
     state: directory
     mode: "0755"
-    recurse: yes
+    recurse: true
   loop:
     - /etc/letsencrypt/archive
     - /etc/letsencrypt/live
 
 - name: Install xray.json config
-  template:
+  ansible.builtin.template:
     src: xray-config.json.j2
     dest: /usr/local/etc/xray/config.json
     owner: root
@@ -64,7 +66,7 @@
     - restart-services
 
 - name: Generate xray subscription from template
-  template:
+  ansible.builtin.template:
     src: subscription.j2
     dest: /tmp/subscription
   register: subscription_template
@@ -77,8 +79,8 @@
 - name: Install subscription file to webserver directory
   ansible.builtin.copy:
     content: "{{ subscription_file.content }}"
-    # dest: "{{ NGINX_ROOT_DIR }}/{{ lookup('community.general.random_string', length=10, min_lower=10) }}"
-    dest: "{{ NGINX_ROOT_DIR }}/{{ SUBSCRIPTION_FILENAME }}"
+    # dest: "{{ nginx_root_dir }}/{{ lookup('community.general.random_string', length=10, min_lower=10) }}"
+    dest: "{{ nginx_root_dir }}/{{ subscription_filename }}"
     remote_src: true
     force: true
   # vars:
@@ -88,5 +90,5 @@
 - debug:
     msg: |
       Subscription links:
-        https://{{ DOMAINS[0] }}/{{ SUBSCRIPTION_FILENAME }}
-        http://{{ ansible_host }}:2095/{{ SUBSCRIPTION_FILENAME }}
+        https://{{ xray_domains[0] }}/{{ subscription_filename }}
+        http://{{ ansible_host }}:2095/{{ subscription_filename }}

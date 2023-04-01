@@ -1,5 +1,5 @@
 ---
-PKGS_LIST:
+pkgs_list:
   - curl
   - wget
   - vim

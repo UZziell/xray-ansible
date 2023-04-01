@@ -3,7 +3,7 @@
   include_role:
     name: packages
   vars:
-    PKGS_LIST: "{{ nginx_pkgs_list }}"
+    pkgs_list: "{{ nginx_pkgs_list }}"
 
 - name: Copy websites
   copy:

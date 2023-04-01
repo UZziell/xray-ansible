@@ -5,6 +5,7 @@ vless_vmess_uuid: 654190e0-a2fd-4bc3-a037-5c99716ee50c
 
 nginx_root_dir: /var/www/html
 subscription_filename: ssss99
+
 nginx_pkgs_list:
   - nginx
 

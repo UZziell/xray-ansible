@@ -4,13 +4,13 @@
 #   when: ansible_os_family == 'Debian'
 #   changed_when: false
 
-- name: Install the latest version packages
-  apt:
+- name: Install the latest common packages
+  ansible.builtin.apt:
     name: "{{ item }}"
     state: latest
-    update_cache: yes
+    update_cache: true
   loop:
-    - "{{ PKGS_LIST }}"
+    - "{{ pkgs_list }}"
   when: ansible_os_family == 'Debian'
 
 # - name: Install dependencies (RedHat).
