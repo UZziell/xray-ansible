@@ -1,6 +1,6 @@
 ---
 - name: Deactivate WARP
-  command: wg-quick down wg0
+  ansible.builtin.command: wg-quick down wg0
 
 - name: Activate WARP
-  command: wg-quick up wg0
+  ansible.builtin.command: wg-quick up wg0

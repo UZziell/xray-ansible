@@ -1,12 +1,12 @@
 ---
 - name: Install nginx
-  include_role:
+  ansible.builtin.include_role:
     name: packages
   vars:
     pkgs_list: "{{ nginx_pkgs_list }}"
 
 - name: Copy websites
-  copy:
+  ansible.builtin.copy:
     src: files/var/www/html
     dest: /var/www/
 
@@ -17,17 +17,17 @@
     line: worker_connections 8192;
 
 - name: Check if /etc/nginx/sites-enabled exists
-  stat:
+  ansible.builtin.stat:
     path: /etc/nginx/sites-enabled
   register: sites_enabled_stat
 
 - name: Set default path to /etc/nginx/sites-enabled
-  set_fact:
+  ansible.builtin.set_fact:
     nginx_config_dir: /etc/nginx/sites-enabled
   when: sites_enabled_stat.stat.isdir
 
 - name: Set default path to /etc/nginx/conf.d
-  set_fact:
+  ansible.builtin.set_fact:
     nginx_config_dir: /etc/nginx/conf.d
   when: not sites_enabled_stat.stat.isdir
 
@@ -37,7 +37,7 @@
     state: absent
 
 - name: Install nginx config
-  template:
+  ansible.builtin.template:
     src: nginx-uds.conf.j2
     dest: "{{nginx_config_dir}}/uds.conf"
     owner: root
@@ -48,7 +48,7 @@
   # register: install_config_result
 
 - name: Check nginx config
-  command: nginx -t
+  ansible.builtin.command: nginx -t
   # notify:
   #   - remove nginx socket files
   #   - restart nginx service
@@ -56,7 +56,7 @@
     - restart-services
 
 - name: Remove nginx socket files
-  file:
+  ansible.builtin.file:
     path: "{{ item }}"
     state: absent
   with_items:
