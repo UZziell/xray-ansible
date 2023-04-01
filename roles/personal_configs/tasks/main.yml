@@ -1,4 +1,4 @@
-- name: customize bash and adding aliases
+- name: Customize bash and adding aliases
   ansible.builtin.blockinfile:
     path: $HOME/.bash_profile
     create: true
@@ -25,7 +25,7 @@
       if [[ -n "$PS1" ]] && [[ -z "$TMUX" ]] && [[ -n "$SSH_CONNECTION" ]]; then
           tmux attach-session -t ssh_tmux || tmux new-session -s ssh_tmux
       fi
-- name: add useful commands to bash_histroy
+- name: Add useful commands to bash_histroy
   ansible.builtin.blockinfile:
     path: $HOME/.bash_history
     create: true
@@ -51,13 +51,13 @@
       openssl req -x509 -newkey rsa:2048 -keyout domain-key.pem -out domain.pem -sha256 -nodes -days 3650 -subj "/CN=google.com" -addext "subjectAltName = DNS:google.com, DNS:*.google.com"
       openssl req -x509 -nodes -days 365 -newkey ec:<(openssl ecparam -name secp256k1) -keyout domain-key.pem -out domain.pem -subj "/CN=google.com"
 
-- name: configure tmux
+- name: Configure tmux
   ansible.builtin.lineinfile:
     path: $HOME/.tmux.conf
     line: setw -g mouse on
     create: true
 
-- name: configure vim
+- name: Configure vim
   ansible.builtin.lineinfile:
     path: $HOME/.vimrc
     line: set paste

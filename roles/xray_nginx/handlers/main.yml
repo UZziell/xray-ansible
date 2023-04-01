@@ -1,10 +1,10 @@
 ---
-- name: restart xray service
+- name: Restart xray service
   ansible.builtin.service:
     name: xray
     state: restarted
 
-- name: remove nginx socket files
+- name: Remove nginx socket files
   file:
     path: "{{ item }}"
     state: absent
@@ -12,7 +12,7 @@
     - /dev/shm/nginx-h1.sock
     - /dev/shm/nginx-h2c.sock
 
-- name: restart nginx service
+- name: Restart nginx service
   ansible.builtin.service:
     name: nginx
     state: restarted

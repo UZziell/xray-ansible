@@ -2,7 +2,7 @@
   "log": {
     // "access": "/var/log/xray/access.log",
     // "error": "/var/log/xray/error.log",
-    "loglevel": "{{ XRAY_LOG_LEVEL }}"
+    "loglevel": "{{ xray_log_level }}"
   },
   "inbounds": [
     {
@@ -12,8 +12,8 @@
       "settings": {
         "clients": [
           {
-            "id": "{{ VLESS_VMESS_UUID }}", // Change to your own UUID
-            // "password": "{{ TROJAN_SHADOWSOCKS_PASSWORD }}", // if `"protocol": "trojan"`
+            "id": "{{ vless_vmess_uuid }}", // Change to your own UUID
+            // "password": "{{ trojan_shadowsocks_password }}", // if `"protocol": "trojan"`
             // "flow": "xtls-rprx-direct"
             "flow": "xtls-rprx-vision",
             "email": "vless@vision"
@@ -108,7 +108,7 @@
         // If XTLS Direct is enabled, "tlsSettings" should also be changed to "xtlsSettings"
         "tlsSettings": {
           "certificates": [
-            {% for domain in DOMAINS %}
+            {% for domain in xray_domains %}
               {
                 "ocspStapling": 3600,
                 "certificateFile": "/etc/letsencrypt/live/{{domain}}/fullchain.pem",
@@ -138,7 +138,7 @@
       "settings": {
         "clients": [
           {
-            "id": "{{ VLESS_VMESS_UUID }}", //Change to your own UUID
+            "id": "{{ vless_vmess_uuid }}", //Change to your own UUID
             "email": "vless@ws"
           }
         ],
@@ -163,7 +163,7 @@
       "settings": {
         "clients": [
           {
-            "id": "{{ VLESS_VMESS_UUID }}", //Change to your own UUID
+            "id": "{{ vless_vmess_uuid }}", //Change to your own UUID
             "level": 0,
             "email": "vmess@ws"
           }
@@ -188,7 +188,7 @@
       "settings": {
         "clients": [
           {
-            "password": "{{ TROJAN_SHADOWSOCKS_PASSWORD }}", //Change to your own password
+            "password": "{{ trojan_shadowsocks_password }}", //Change to your own password
             "email": "trojan@ws"
           }
         ]
@@ -213,7 +213,7 @@
       "protocol": "shadowsocks",
       "settings": {
         "method": "chacha20-ietf-poly1305",
-        "password": "{{ TROJAN_SHADOWSOCKS_PASSWORD }}", //Change to your own password
+        "password": "{{ trojan_shadowsocks_password }}", //Change to your own password
         "email": "ss@ws"
       },
       "streamSettings": {
@@ -234,7 +234,7 @@
     //   "settings": {
     //     "clients": [
     //       {
-    //         "id": "{{ VLESS_VMESS_UUID }}", //Change to your own UUID
+    //         "id": "{{ vless_vmess_uuid }}", //Change to your own UUID
     //         "email": "vless@ws"
     //       }
     //     ],
@@ -259,7 +259,7 @@
     //   "settings": {
     //     "clients": [
     //       {
-    //         "id": "{{ VLESS_VMESS_UUID }}", //Change to your own UUID
+    //         "id": "{{ vless_vmess_uuid }}", //Change to your own UUID
     //         "level": 0,
     //         "email": "vmess@ws"
     //       }
@@ -284,7 +284,7 @@
     //   "settings": {
     //     "clients": [
     //       {
-    //         "password": "{{ TROJAN_SHADOWSOCKS_PASSWORD }}", //Change to your own password
+    //         "password": "{{ trojan_shadowsocks_password }}", //Change to your own password
     //         "email": "trojan@ws"
     //       }
     //     ]
@@ -311,7 +311,7 @@
       "settings": {
         "clients": [
           {
-            "password": "{{ TROJAN_SHADOWSOCKS_PASSWORD }}",
+            "password": "{{ trojan_shadowsocks_password }}",
             "email": "trojan@tcp"
           }
         ],
@@ -341,7 +341,7 @@
       "settings": {
         "clients": [
           {
-            "id": "{{ VLESS_VMESS_UUID }}",
+            "id": "{{ vless_vmess_uuid }}",
             "email": "vless@tcp"
           }
         ],
@@ -371,7 +371,7 @@
       "settings": {
         "clients": [
           {
-            "id": "{{ VLESS_VMESS_UUID }}",
+            "id": "{{ vless_vmess_uuid }}",
             "level": 0,
             "email": "vmess@tcp"
           }
@@ -402,7 +402,7 @@
       "protocol": "shadowsocks",
       "settings": {
         "method": "chacha20-ietf-poly1305",
-        "password": "{{ TROJAN_SHADOWSOCKS_PASSWORD }}",
+        "password": "{{ trojan_shadowsocks_password }}",
         "email": "ss@tcp"
       },
       "streamSettings": {
@@ -433,7 +433,7 @@
       "settings": {
         "clients": [
           {
-            "password": "{{ TROJAN_SHADOWSOCKS_PASSWORD }}",
+            "password": "{{ trojan_shadowsocks_password }}",
             "email": "trojan@grpc"
           }
         ]
@@ -454,7 +454,7 @@
       "settings": {
         "clients": [
           {
-            "id": "{{ VLESS_VMESS_UUID }}",
+            "id": "{{ vless_vmess_uuid }}",
             "email": "vless@grpc"
           }
         ],
@@ -476,7 +476,7 @@
       "settings": {
         "clients": [
           {
-            "id": "{{ VLESS_VMESS_UUID }}",
+            "id": "{{ vless_vmess_uuid }}",
             "level": 0,
             "email": "vmess@grpc"
           }
@@ -496,7 +496,7 @@
       "protocol": "shadowsocks",
       "settings": {
         "method": "chacha20-ietf-poly1305",
-        "password": "{{ TROJAN_SHADOWSOCKS_PASSWORD }}",
+        "password": "{{ trojan_shadowsocks_password }}",
         "email": "ss@grpc"
       },
       "streamSettings": {
@@ -520,7 +520,7 @@
       "settings": {
         "clients": [
           {
-            "password": "{{ TROJAN_SHADOWSOCKS_PASSWORD }}",
+            "password": "{{ trojan_shadowsocks_password }}",
             "email": "trojan@h2"
           }
         ]
@@ -539,7 +539,7 @@
       "settings": {
         "clients": [
           {
-            "id": "{{ VLESS_VMESS_UUID }}",
+            "id": "{{ vless_vmess_uuid }}",
             "email": "vless@h2"
           }
         ],
@@ -563,7 +563,7 @@
       "settings": {
         "clients": [
           {
-            "id": "{{ VLESS_VMESS_UUID }}",
+            "id": "{{ vless_vmess_uuid }}",
             "level": 0,
             "email": "vmess@h2"
           }
@@ -588,7 +588,7 @@
       "protocol": "shadowsocks",
       "settings": {
         "method": "chacha20-ietf-poly1305",
-        "password": "{{ TROJAN_SHADOWSOCKS_PASSWORD }}",
+        "password": "{{ trojan_shadowsocks_password }}",
         "email": "ss@h2"
       },
       "streamSettings": {
@@ -609,7 +609,7 @@
       "settings": {
         "clients": [
           {
-            "id": "{{ VLESS_VMESS_UUID }}",
+            "id": "{{ vless_vmess_uuid }}",
             "email": "vless@80"
           }
         ],
@@ -669,7 +669,7 @@
       "settings": {
         "clients": [
           {
-            "id": "{{ VLESS_VMESS_UUID }}",
+            "id": "{{ vless_vmess_uuid }}",
             "email": "vless@2095"
           }
         ],
@@ -690,7 +690,7 @@
       "settings": {
         "clients": [
           {
-            "id": "{{ VLESS_VMESS_UUID }}",
+            "id": "{{ vless_vmess_uuid }}",
             "email": "vless@334"
           }
         ],
@@ -711,7 +711,7 @@
       "settings": {
         "clients": [
           {
-            "id": "{{ VLESS_VMESS_UUID }}",
+            "id": "{{ vless_vmess_uuid }}",
             "email": "vless@334"
           }
         ],
@@ -747,7 +747,7 @@
       "settings": {
         "clients": [
           {
-            "id": "{{ VLESS_VMESS_UUID }}",
+            "id": "{{ vless_vmess_uuid }}",
             "email": "vless@kcp"
           }
         ],
@@ -773,7 +773,7 @@
       "settings": {
         "clients": [
           {
-            "id": "{{ VLESS_VMESS_UUID }}",
+            "id": "{{ vless_vmess_uuid }}",
             "email": "vless@quic"
           }
         ],
@@ -791,7 +791,7 @@
         "security": "tls",
         "tlsSettings": {
           "certificates": [
-            {% for domain in DOMAINS %}
+            {% for domain in xray_domains %}
               {
                 "ocspStapling": 3600,
                 "certificateFile": "/etc/letsencrypt/live/{{domain}}/fullchain.pem",
@@ -808,7 +808,7 @@
       "settings": {
         "clients": [
           {
-            "id": "{{ VLESS_VMESS_UUID }}",
+            "id": "{{ vless_vmess_uuid }}",
             "email": "vmess@quic"
           }
         ],
@@ -828,7 +828,7 @@
         "security": "tls",
         "tlsSettings": {
           "certificates": [
-            {% for domain in DOMAINS %}
+            {% for domain in xray_domains %}
               {
                 "ocspStapling": 3600,
                 "certificateFile": "/etc/letsencrypt/live/{{domain}}/fullchain.pem",
@@ -865,7 +865,7 @@
         "security": "tls",
         "tlsSettings": {
           "certificates": [
-            {% for domain in DOMAINS %}
+            {% for domain in xray_domains %}
               {
                 "ocspStapling": 3600,
                 "certificateFile": "/etc/letsencrypt/live/{{domain}}/fullchain.pem",
@@ -882,7 +882,7 @@
       "settings": {
         "clients": [
           {
-            "id": "{{ VLESS_VMESS_UUID }}",
+            "id": "{{ vless_vmess_uuid }}",
             "email": "vmess@kcp-dynamicport",
             "level": 0
           }

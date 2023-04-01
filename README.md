@@ -16,12 +16,12 @@ Available variables are listed below:
     - domains:
         - example2.com
 
-    XRAY_LOG_LEVEL: warning
-    TROJAN_SHADOWSOCKS_PASSWORD: TORJAN_SHADOWSOCKS_INBOUNDS_PASSWORD
-    VLESS_VMESS_UUID: 7730e289-a907-4d89-82c5-b73d26d98aea
-    SUBSCRIPTION_FILENAME: mysub
+    xray_log_level: warning
+    trojan_shadowsocks_password: TORJAN_SHADOWSOCKS_INBOUNDS_PASSWORD
+    vless_vmess_uuid: 7730e289-a907-4d89-82c5-b73d26d98aea
+    subscription_filename: mysub
 
-    DOMAINS:
+    xray_domains:
     - example.com
     - example2.com
 
@@ -56,12 +56,12 @@ ansible-galaxy install -r requirements.yml
         - example2.com
 
     # Xray
-    XRAY_LOG_LEVEL: warning
-    TROJAN_SHADOWSOCKS_PASSWORD: TORJAN_SHADOWSOCKS_INBOUNDS_PASSWORD
-    VLESS_VMESS_UUID: 7730e289-a907-4d89-82c5-b73d26d98aea
-    SUBSCRIPTION_FILENAME: subs
+    xray_log_level: warning
+    trojan_shadowsocks_password: TORJAN_SHADOWSOCKS_INBOUNDS_PASSWORD
+    vless_vmess_uuid: 7730e289-a907-4d89-82c5-b73d26d98aea
+    subscription_filename: subs
 
-    DOMAINS:
+    xray_domains:
     - example.com
     - example2.com
 

@@ -1,13 +1,13 @@
 ---
-XRAY_LOG_LEVEL: warning
-TROJAN_SHADOWSOCKS_PASSWORD: fbbdc2a8fd89f2a64f68fcc76b1aa4d8722afa33
-VLESS_VMESS_UUID: 654190e0-a2fd-4bc3-a037-5c99716ee50c
+xray_log_level: warning
+trojan_shadowsocks_password: fbbdc2a8fd89f2a64f68fcc76b1aa4d8722afa33
+vless_vmess_uuid: 654190e0-a2fd-4bc3-a037-5c99716ee50c
 
-NGINX_ROOT_DIR: /var/www/html
-SUBSCRIPTION_FILENAME: ssss99
-NGINX_PKGS_LIST:
+nginx_root_dir: /var/www/html
+subscription_filename: ssss99
+nginx_pkgs_list:
   - nginx
 
-DOMAINS:
+xray_domains:
   - example.com
   - example2.com

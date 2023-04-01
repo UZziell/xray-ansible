@@ -1,9 +1,9 @@
-vless://{{ VLESS_VMESS_UUID }}@{{ DOMAINS[0] }}:443?sni={{ DOMAINS[0] }}&security=tls&type=ws&path=/vlws&host={{ DOMAINS[0] }}#Vless-WS-CDN
-vless://{{ VLESS_VMESS_UUID }}@{{ DOMAINS[0] }}:443?sni={{ DOMAINS[0] }}&security=tls&type=grpc&serviceName=vlgrpc#Vless-gRPC-CDN
-trojan://{{ TROJAN_SHADOWSOCKS_PASSWORD }}@{{ DOMAINS[0] }}:443?sni={{ DOMAINS[0] }}&allowInsecure=1&security=tls&type=grpc&serviceName=trgrpc#Trojan-gRPC-CDN
-trojan://{{ TROJAN_SHADOWSOCKS_PASSWORD }}@{{ DOMAINS[0] }}:443?sni={{ DOMAINS[0] }}&security=tls&type=ws&path=/trws?ed%3D2048&host={{ DOMAINS[0] }}#Trojan-WS-CDN
-vless://{{ VLESS_VMESS_UUID }}@{{ ipv4_address }}:443?security=tls&encryption=none&headerType=none&fp=chrome&type=tcp&flow=xtls-rprx-vision&sni=www.ninisite.com#Vless-Xtls-VISION
-trojan://{{ TROJAN_SHADOWSOCKS_PASSWORD }}@{{ ipv4_address }}:334?sni=api.digikala.com&allowInsecure=1&security=tls&type=grpc&serviceName=trgrpc#trojan-gRPC-ALLOW-INSECURE
-trojan://{{ TROJAN_SHADOWSOCKS_PASSWORD }}@{{ ipv4_address }}:443?sni=google.com&allowInsecure=1&security=tls&type=tcp#Trojan-TCP-ALLOW_INSECURE
-vless://{{ VLESS_VMESS_UUID }}@{{ ipv4_address }}:80?security=none&type=tcp&headerType=http&path=/vltc&host=www.varzesh3.com#Vless-TCP
-vless://{{ VLESS_VMESS_UUID }}@{{ ipv4_address }}:334?sni=api.digikala.com&allowInsecure=1&security=tls&type=grpc&serviceName=vlgrpc#Vless-gRPC-ALLOW-INSECURE
+vless://{{ vless_vmess_uuid }}@{{ xray_domains[0] }}:443?sni={{ xray_domains[0] }}&security=tls&type=ws&path=/vlws&host={{ xray_domains[0] }}#Vless-WS-CDN
+vless://{{ vless_vmess_uuid }}@{{ xray_domains[0] }}:443?sni={{ xray_domains[0] }}&security=tls&type=grpc&serviceName=vlgrpc#Vless-gRPC-CDN
+trojan://{{ trojan_shadowsocks_password }}@{{ xray_domains[0] }}:443?sni={{ xray_domains[0] }}&allowInsecure=1&security=tls&type=grpc&serviceName=trgrpc#Trojan-gRPC-CDN
+trojan://{{ trojan_shadowsocks_password }}@{{ xray_domains[0] }}:443?sni={{ xray_domains[0] }}&security=tls&type=ws&path=/trws?ed%3D2048&host={{ xray_domains[0] }}#Trojan-WS-CDN
+vless://{{ vless_vmess_uuid }}@{{ ipv4_address }}:443?security=tls&encryption=none&headerType=none&fp=chrome&type=tcp&flow=xtls-rprx-vision&sni=www.ninisite.com#Vless-Xtls-VISION
+trojan://{{ trojan_shadowsocks_password }}@{{ ipv4_address }}:334?sni=api.digikala.com&allowInsecure=1&security=tls&type=grpc&serviceName=trgrpc#trojan-gRPC-ALLOW-INSECURE
+trojan://{{ trojan_shadowsocks_password }}@{{ ipv4_address }}:443?sni=google.com&allowInsecure=1&security=tls&type=tcp#Trojan-TCP-ALLOW_INSECURE
+vless://{{ vless_vmess_uuid }}@{{ ipv4_address }}:80?security=none&type=tcp&headerType=http&path=/vltc&host=www.varzesh3.com#Vless-TCP
+vless://{{ vless_vmess_uuid }}@{{ ipv4_address }}:334?sni=api.digikala.com&allowInsecure=1&security=tls&type=grpc&serviceName=vlgrpc#Vless-gRPC-ALLOW-INSECURE

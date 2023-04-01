@@ -18,7 +18,7 @@ server {
 
     location / {
         # add_header Strict-Transport-Security "max-age=31536000; includeSubDomains; preload" always; # enable HSTS
-        root {{ NGINX_ROOT_DIR }}; # Modify to the path of the WEB file stored by yourself (check the permissions)
+        root {{ nginx_root_dir }}; # Modify to the path of the WEB file stored by yourself (check the permissions)
         index index.html index.htm;
     }
 }
@@ -61,7 +61,7 @@ server {
     # Decoy website
     location / {
         # add_header Strict-Transport-Security "max-age=31536000; includeSubDomains; preload" always; # enable HSTS
-        root {{ NGINX_ROOT_DIR }}; # Modify to the path of the WEB file stored by yourself (check the permissions)
+        root {{ nginx_root_dir }}; # Modify to the path of the WEB file stored by yourself (check the permissions)
         index index.html index.htm;
     }
 

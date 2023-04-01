@@ -2,7 +2,7 @@
 - name: Configure nginx for xray
   import_tasks: nginx-uds.yml
 
-- name: install/upgrade xray via official script
+- name: Install/upgrade xray via official script
   become: true
   ansible.builtin.shell: bash -c "$(curl -L https://github.com/XTLS/Xray-install/raw/main/install-release.sh)" @ install
   register: xray_install_output
@@ -11,7 +11,7 @@
 - name: Get latest iran-hosted-domains releases from GitHub API
   ansible.builtin.uri:
     url: https://api.github.com/repos/bootmortis/iran-hosted-domains/releases/latest
-    return_content: yes
+    return_content: true
   register: latest_release
 
 - name: Extract download URL of iran.dat
@@ -24,15 +24,15 @@
     dest: /usr/local/share/xray/iran.dat
     force: true
 
-- name: enable bbr
+- name: Enable bbr
   sysctl:
     name: "{{ item.name }}"
     value: "{{ item.value }}"
     state: present
     sysctl_set: true
   with_items:
-    - { name: "net.core.default_qdisc", value: "fq" }
-    - { name: "net.ipv4.tcp_congestion_control", value: "bbr" }
+    - { name: net.core.default_qdisc, value: fq }
+    - { name: net.ipv4.tcp_congestion_control, value: bbr }
 
 - name: Ensure xray can read certbot directory
   file:
@@ -69,12 +69,12 @@
     dest: /tmp/subscription
   register: subscription_template
 
-- name: read subscription file
+- name: Read subscription file
   ansible.builtin.slurp:
     src: /tmp/subscription
   register: subscription_file
 
-- name: install subscription file to webserver directory
+- name: Install subscription file to webserver directory
   ansible.builtin.copy:
     content: "{{ subscription_file.content }}"
     # dest: "{{ NGINX_ROOT_DIR }}/{{ lookup('community.general.random_string', length=10, min_lower=10) }}"

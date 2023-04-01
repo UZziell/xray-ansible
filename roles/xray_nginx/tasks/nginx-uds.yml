@@ -1,16 +1,16 @@
 ---
-- name: install nginx
+- name: Install nginx
   include_role:
     name: packages
   vars:
-    PKGS_LIST: "{{ NGINX_PKGS_LIST }}"
+    PKGS_LIST: "{{ nginx_pkgs_list }}"
 
-- name: copy websites
+- name: Copy websites
   copy:
     src: files/var/www/html
     dest: /var/www/
 
-- name: change worker connections
+- name: Change worker connections
   ansible.builtin.lineinfile:
     path: /etc/nginx/nginx.conf
     regexp: worker_connections
@@ -31,12 +31,12 @@
     nginx_config_dir: /etc/nginx/conf.d
   when: not sites_enabled_stat.stat.isdir
 
-- name: delete nginx default config
+- name: Delete nginx default config
   ansible.builtin.file:
     path: "{{ nginx_config_dir }}/default"
     state: absent
 
-- name: install nginx config
+- name: Install nginx config
   template:
     src: nginx-uds.conf.j2
     dest: "{{nginx_config_dir}}/uds.conf"
@@ -46,7 +46,7 @@
     # backup: true
     # validate: nginx -t -c %s
 
-- name: check nginx config
+- name: Check nginx config
   command: nginx -t
   # notify:
   #   - remove nginx socket files
@@ -54,7 +54,7 @@
   tags:
     - restart-services
 
-- name: remove nginx socket files
+- name: Remove nginx socket files
   file:
     path: "{{ item }}"
     state: absent
@@ -64,7 +64,7 @@
   tags:
     - restart-services
 
-- name: restart nginx service
+- name: Restart nginx service
   ansible.builtin.service:
     name: nginx
     state: restarted
