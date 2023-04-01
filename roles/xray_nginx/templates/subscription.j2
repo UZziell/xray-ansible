@@ -3,7 +3,7 @@ trojan://{{ trojan_shadowsocks_password }}@{{ ipv4_address }}:334?sni=api.digika
 trojan://{{ trojan_shadowsocks_password }}@{{ ipv4_address }}:443?sni=google.com&allowInsecure=1&security=tls&type=tcp#Trojan-TCP-ALLOW_INSECURE
 vless://{{ vless_vmess_uuid }}@{{ ipv4_address }}:80?security=none&type=tcp&headerType=http&path=/vltc&host=www.varzesh3.com#Vless-TCP
 vless://{{ vless_vmess_uuid }}@{{ ipv4_address }}:334?sni=api.digikala.com&allowInsecure=1&security=tls&type=grpc&serviceName=vlgrpc#Vless-gRPC-ALLOW-INSECURE
-{% for domain in xray_domains[0] %}
+{% for domain in xray_domains %}
 trojan://{{ trojan_shadowsocks_password }}@{{ active_subdomain }}.{{ domain }}:443?sni={{ active_subdomain }}.{{ domain }}&allowInsecure=1&security=tls&type=grpc&serviceName=trgrpc#Trojan-gRPC-CDN
 trojan://{{ trojan_shadowsocks_password }}@{{ active_subdomain }}.{{ domain }}:443?sni={{ active_subdomain }}.{{ domain }}&security=tls&type=ws&path=/trws?ed%3D2048&host={{ domain }}#Trojan-WS-CDN
 trojan://{{ trojan_shadowsocks_password }}@173.245.59.2:443?sni={{ active_subdomain }}.{{ domain }}&security=tls&type=ws&path=/trws?ed%3D2048&host={{ active_subdomain }}.{{ domain }}#Tws-HamrahAval
@@ -31,10 +31,10 @@ vless://{{ vless_vmess_uuid }}@{{ active_subdomain }}.{{ domain }}:443?sni=asd.c
 vless://{{ vless_vmess_uuid }}@{{ active_subdomain }}.{{ domain }}:443?sni={{ active_subdomain }}.{{ domain }}&security=tls&type=grpc&serviceName=vlgrpc#Vless-gRPC-CDN
 vless://{{ vless_vmess_uuid }}@185.72.49.21:443?sni={{ active_subdomain }}.{{ domain }}&security=tls&type=grpc&serviceName=vlgrpc#VLESSgRPC-Shatel
 {% endfor %}
-vless://{{ vless_vmess_uuid }}@ww.sansorchi.net:2053?sni=srv88.oldzlandz.store&security=tls&type=grpc&serviceName=vlgrpc#zVLESSgRPCCC
-vless://{{ vless_vmess_uuid }}@metrix.gheychi.ml:2053?sni=srv88.oldzlandz.store&security=tls&type=grpc&serviceName=vlgrpc#zVLESSgRPCCCC
-vless://{{ vless_vmess_uuid }}@cf.sansorchi.net:2053?sni=srv88.oldzlandz.store&security=tls&type=grpc&serviceName=vlgrpc#zVLESSgRPCCC
-vless://{{ vless_vmess_uuid }}@cf3.sansorchi.net:2053?sni=srv88.oldzlandz.store&security=tls&type=grpc&serviceName=vlgrpc#zVLESSgRPCCC
-vless://{{ vless_vmess_uuid }}@cft13.sansorchi.net:2053?sni=srv88.oldzlandz.store&security=tls&type=grpc&serviceName=vlgrpc#zVLESSgRPCCC
-vless://{{ vless_vmess_uuid }}@moz.sansorchi.net:2053?sni=srv88.oldzlandz.store&security=tls&type=grpc&serviceName=vlgrpc#zVLESSgRPCCC
-vless://{{ vless_vmess_uuid }}@cft1.sansorchi.net:2053?sni=srv88.oldzlandz.store&allowInsecure=1&security=tls&type=grpc&serviceName=vlgrpc#zVLESSgRPCCC
+vless://{{ vless_vmess_uuid }}@ww.sansorchi.net:2053?sni={{ active_subdomain }}.{{ xray_domains[1] }}&security=tls&type=grpc&serviceName=vlgrpc#zVLESSgRPCCC
+vless://{{ vless_vmess_uuid }}@metrix.gheychi.ml:2053?sni={{ active_subdomain }}.{{ xray_domains[1] }}&security=tls&type=grpc&serviceName=vlgrpc#zVLESSgRPCCCC
+vless://{{ vless_vmess_uuid }}@cf.sansorchi.net:2053?sni={{ active_subdomain }}.{{ xray_domains[1] }}&security=tls&type=grpc&serviceName=vlgrpc#zVLESSgRPCCC
+vless://{{ vless_vmess_uuid }}@cf3.sansorchi.net:2053?sni={{ active_subdomain }}.{{ xray_domains[1] }}&security=tls&type=grpc&serviceName=vlgrpc#zVLESSgRPCCC
+vless://{{ vless_vmess_uuid }}@cft13.sansorchi.net:2053?sni={{ active_subdomain }}.{{ xray_domains[1] }}&security=tls&type=grpc&serviceName=vlgrpc#zVLESSgRPCCC
+vless://{{ vless_vmess_uuid }}@moz.sansorchi.net:2053?sni={{ active_subdomain }}.{{ xray_domains[1] }}&security=tls&type=grpc&serviceName=vlgrpc#zVLESSgRPCCC
+vless://{{ vless_vmess_uuid }}@cft1.sansorchi.net:2053?sni={{ active_subdomain }}.{{ xray_domains[1] }}&allowInsecure=1&security=tls&type=grpc&serviceName=vlgrpc#zVLESSgRPCCC
