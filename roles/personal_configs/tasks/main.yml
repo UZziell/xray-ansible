@@ -2,7 +2,7 @@
   ansible.builtin.blockinfile:
     path: $HOME/.bash_profile
     create: true
-    mode: '0600'
+    mode: "0600"
     block: |
       # for setting history length see HISTSIZE and HISTFILESIZE in bash(1)
       HISTSIZE=
@@ -30,7 +30,7 @@
   ansible.builtin.blockinfile:
     path: $HOME/.bash_history
     create: true
-    mode: '0600'
+    mode: "0600"
     block: |
       resolvectl reset-statistics
       resolvectl statistics
@@ -58,11 +58,11 @@
     path: $HOME/.tmux.conf
     line: setw -g mouse on
     create: true
-    mode: '0600'
+    mode: "0600"
 
 - name: Configure vim
   ansible.builtin.lineinfile:
     path: $HOME/.vimrc
     line: set paste
     create: true
-    mode: '0600'
+    mode: "0600"

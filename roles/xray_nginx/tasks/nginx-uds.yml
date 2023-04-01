@@ -45,6 +45,7 @@
     mode: "0644"
     # backup: true
     # validate: nginx -t -c %s
+  # register: install_config_result
 
 - name: Check nginx config
   command: nginx -t
@@ -65,8 +66,9 @@
     - restart-services
 
 - name: Restart nginx service
-  ansible.builtin.service:
+  ansible.builtin.systemd:
     name: nginx
     state: restarted
+    enabled: true
   tags:
     - restart-services
