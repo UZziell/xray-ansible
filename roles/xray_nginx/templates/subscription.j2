@@ -1,11 +1,17 @@
-vless://{{ vless_vmess_uuid }}@{{ ipv4_address }}:443?security=tls&encryption=none&headerType=none&fp=chrome&type=tcp&flow=xtls-rprx-vision&sni=www.ninisite.com#Vless-Xtls-VISION
-trojan://{{ trojan_shadowsocks_password }}@{{ ipv4_address }}:334?sni=api.digikala.com&allowInsecure=1&security=tls&type=grpc&serviceName=trgrpc#Trojan-gRPC-ALLOW-INSECURE
+trojan://{{ trojan_shadowsocks_password }}@{{ ipv4_address }}:334?sni=api.varzesh3.com&allowInsecure=1&security=tls&type=grpc&serviceName=trgrpc#TgRPC-ALLOW-INSECURE
+trojan://{{ trojan_shadowsocks_password }}@{{ ipv4_address }}:334?sni=api.virgool.io&allowInsecure=1&security=tls&type=grpc&serviceName=trgrpc#TgRPC-ALLOW-INSECURE
 trojan://{{ trojan_shadowsocks_password }}@{{ ipv4_address }}:443?sni=google.com&allowInsecure=1&security=tls&type=tcp#Trojan-TCP-ALLOW_INSECURE
+vless://{{ vless_vmess_uuid }}@{{ ipv4_address }}:443?security=tls&encryption=none&headerType=none&fp=chrome&type=tcp&flow=xtls-rprx-vision&sni=www.ninisite.com#Vless-Xtls-VISION
 vless://{{ vless_vmess_uuid }}@{{ ipv4_address }}:80?security=none&type=tcp&headerType=http&path=/vltc&host=www.varzesh3.com#Vless-TCP
-vless://{{ vless_vmess_uuid }}@{{ ipv4_address }}:334?sni=api.digikala.com&allowInsecure=1&security=tls&type=grpc&serviceName=vlgrpc#Vless-gRPC-ALLOW-INSECURE
+vless://{{ vless_vmess_uuid }}@{{ ipv4_address }}:334?sni=api.digikala.com&allowInsecure=1&security=tls&type=grpc&serviceName=vlgrpc#VlessgRPC-ALLOW-INSECURE
+{% if ipv6_address is defined and ipv6_address | default("") != ""  %}
+trojan://{{ trojan_shadowsocks_password }}@[{{ ipv6_address }}]:334?sni=mail.google.com&allowInsecure=1&security=tls&type=grpc&serviceName=trgrpc#Trojan-gRPC-IPv6-ALLOW-INSECURE
+vless://{{ vless_vmess_uuid }}@[{{ ipv6_address }}]:80?security=none&type=tcp&headerType=http&path=/vltc&host=www.varzesh3.com#Vless-TCP-IPv6
+{% endif %}
+{% if extra_subscription_links %}
 {% for domain in xray_domains %}
-trojan://{{ trojan_shadowsocks_password }}@{{ active_subdomain }}.{{ domain }}:443?sni={{ active_subdomain }}.{{ domain }}&allowInsecure=1&security=tls&type=grpc&serviceName=trgrpc#Trojan-gRPC-CDN
-trojan://{{ trojan_shadowsocks_password }}@{{ active_subdomain }}.{{ domain }}:443?sni={{ active_subdomain }}.{{ domain }}&security=tls&type=ws&path=/trws?ed%3D2048&host={{ domain }}#Trojan-WS-CDN
+trojan://{{ trojan_shadowsocks_password }}@{{ active_subdomain }}.{{ domain }}:443?sni={{ active_subdomain }}.{{ domain }}&allowInsecure=1&security=tls&type=grpc&serviceName=trgrpc#Trojan-gRPC
+trojan://{{ trojan_shadowsocks_password }}@{{ active_subdomain }}.{{ domain }}:443?sni={{ active_subdomain }}.{{ domain }}&security=tls&type=ws&path=/trws?ed%3D2048&host={{ domain }}#Trojan-WS
 trojan://{{ trojan_shadowsocks_password }}@173.245.59.2:443?sni={{ active_subdomain }}.{{ domain }}&security=tls&type=ws&path=/trws?ed%3D2048&host={{ active_subdomain }}.{{ domain }}#Tws-HamrahAval
 trojan://{{ trojan_shadowsocks_password }}@185.193.29.240:443?sni={{ active_subdomain }}.{{ domain }}&security=tls&type=ws&path=/trws?ed%3D2048&host={{ active_subdomain }}.{{ domain }}#Tws-Rightel
 trojan://{{ trojan_shadowsocks_password }}@203.13.32.171:443?sni={{ active_subdomain }}.{{ domain }}&security=tls&type=ws&path=/trws?ed%3D2048&host={{ active_subdomain }}.{{ domain }}#Tws-Asiatek
@@ -27,14 +33,37 @@ trojan://{{ trojan_shadowsocks_password }}@103.160.204.20:443?sni={{ active_subd
 trojan://{{ trojan_shadowsocks_password }}@45.95.241.16:443?sni={{ active_subdomain }}.{{ domain }}&security=tls&type=ws&path=/trws?ed%3D2048&host={{ active_subdomain }}.{{ domain }}#Tws-Shatel
 trojan://{{ trojan_shadowsocks_password }}@185.201.139.27:443?sni={{ active_subdomain }}.{{ domain }}&security=tls&type=ws&path=/trws?ed%3D2048&host={{ active_subdomain }}.{{ domain }}#Tws-Mokhaberat
 trojan://{{ trojan_shadowsocks_password }}@45.131.208.227:443?sni={{ active_subdomain }}.{{ domain }}&security=tls&type=ws&path=/trws?ed%3D2048&host={{ active_subdomain }}.{{ domain }}#Tws-ParsOnline
-vless://{{ vless_vmess_uuid }}@{{ active_subdomain }}.{{ domain }}:443?sni=asd.com&security=tls&type=ws&path=/vlws&host={{ active_subdomain }}.{{ domain }}#Vless-WS-CDN
-vless://{{ vless_vmess_uuid }}@{{ active_subdomain }}.{{ domain }}:443?sni={{ active_subdomain }}.{{ domain }}&security=tls&type=grpc&serviceName=vlgrpc#Vless-gRPC-CDN
+trojan://{{ trojan_shadowsocks_password }}@173.245.59.2:2053?sni={{ active_subdomain }}.{{ domain }}&allowInsecure=1&security=tls&type=grpc&serviceName=trgrpc#TrgRPC-Rightell
+trojan://{{ trojan_shadowsocks_password }}@173.245.59.2:443?sni={{ active_subdomain }}.{{ domain }}&allowInsecure=1&security=tls&type=grpc&serviceName=trgrpc#TrgRPC-HamrahAval
+trojan://{{ trojan_shadowsocks_password }}@185.193.29.240:443?sni={{ active_subdomain }}.{{ domain }}&allowInsecure=1&security=tls&type=grpc&serviceName=trgrpc#TrgRPC-Rightel
+trojan://{{ trojan_shadowsocks_password }}@203.13.32.171:443?sni={{ active_subdomain }}.{{ domain }}&allowInsecure=1&security=tls&type=grpc&serviceName=trgrpc#TrgRPC-Asiatek
+trojan://{{ trojan_shadowsocks_password }}@195.245.221.163:443?sni={{ active_subdomain }}.{{ domain }}&allowInsecure=1&security=tls&type=grpc&serviceName=trgrpc#TrgRPC-Shatel
+trojan://{{ trojan_shadowsocks_password }}@45.131.210.156:443?sni={{ active_subdomain }}.{{ domain }}&allowInsecure=1&security=tls&type=grpc&serviceName=trgrpc#TrgRPC-Mokhaberat
+trojan://{{ trojan_shadowsocks_password }}@203.17.126.132:443?sni={{ active_subdomain }}.{{ domain }}&allowInsecure=1&security=tls&type=grpc&serviceName=trgrpc#TrgRPC-Zitel
+trojan://{{ trojan_shadowsocks_password }}@188.114.97.82:443?sni={{ active_subdomain }}.{{ domain }}&allowInsecure=1&security=tls&type=grpc&serviceName=trgrpc#TrgRPC-ParsOnline
+trojan://{{ trojan_shadowsocks_password }}@185.193.31.48:443?sni={{ active_subdomain }}.{{ domain }}&allowInsecure=1&security=tls&type=grpc&serviceName=trgrpc#TrgRPC-HamrahAval
+trojan://{{ trojan_shadowsocks_password }}@185.162.230.151:443?sni={{ active_subdomain }}.{{ domain }}&allowInsecure=1&security=tls&type=grpc&serviceName=trgrpc#TrgRPC-Rightel
+trojan://{{ trojan_shadowsocks_password }}@185.72.49.160:443?sni={{ active_subdomain }}.{{ domain }}&allowInsecure=1&security=tls&type=grpc&serviceName=trgrpc#TrgRPC-Asiatek
+trojan://{{ trojan_shadowsocks_password }}@80.94.83.118:443?sni={{ active_subdomain }}.{{ domain }}&allowInsecure=1&security=tls&type=grpc&serviceName=trgrpc#TrgRPC-Mokhaberat
+trojan://{{ trojan_shadowsocks_password }}@185.59.218.112:443?sni={{ active_subdomain }}.{{ domain }}&allowInsecure=1&security=tls&type=grpc&serviceName=trgrpc#TrgRPC-Mobinnet
+trojan://{{ trojan_shadowsocks_password }}@66.81.255.103:443?sni={{ active_subdomain }}.{{ domain }}&allowInsecure=1&security=tls&type=grpc&serviceName=trgrpc#TrgRPC-Zitel
+trojan://{{ trojan_shadowsocks_password }}@199.212.90.123:443?sni={{ active_subdomain }}.{{ domain }}&allowInsecure=1&security=tls&type=grpc&serviceName=trgrpc#TrgRPC-Zitel
+trojan://{{ trojan_shadowsocks_password }}@45.85.119.123:443?sni={{ active_subdomain }}.{{ domain }}&allowInsecure=1&security=tls&type=grpc&serviceName=trgrpc#TrgRPC-Irancell3
+trojan://{{ trojan_shadowsocks_password }}@45.85.118.88:443?sni={{ active_subdomain }}.{{ domain }}&allowInsecure=1&security=tls&type=grpc&serviceName=trgrpc#TrgRPC-Irancell
+trojan://{{ trojan_shadowsocks_password }}@185.148.105.163:443?sni={{ active_subdomain }}.{{ domain }}&allowInsecure=1&security=tls&type=grpc&serviceName=trgrpc#TrgRPC-Rightel
+trojan://{{ trojan_shadowsocks_password }}@103.160.204.20:443?sni={{ active_subdomain }}.{{ domain }}&allowInsecure=1&security=tls&type=grpc&serviceName=trgrpc#TrgRPC-Asiatek
+trojan://{{ trojan_shadowsocks_password }}@45.95.241.16:443?sni={{ active_subdomain }}.{{ domain }}&allowInsecure=1&security=tls&type=grpc&serviceName=trgrpc#TrgRPC-Shatel
+trojan://{{ trojan_shadowsocks_password }}@185.201.139.27:443?sni={{ active_subdomain }}.{{ domain }}&allowInsecure=1&security=tls&type=grpc&serviceName=trgrpc#TrgRPC-Mokhaberat
+trojan://{{ trojan_shadowsocks_password }}@45.131.208.227:443?sni={{ active_subdomain }}.{{ domain }}&allowInsecure=1&security=tls&type=grpc&serviceName=trgrpc#TrgRPC-ParsOnline
+vless://{{ vless_vmess_uuid }}@{{ active_subdomain }}.{{ domain }}:2053?sni={{ active_subdomain }}.{{ domain }}&security=tls&type=ws&path=/vlws&host={{ active_subdomain }}.{{ domain }}#Vless-WS-CDN
+vless://{{ vless_vmess_uuid }}@{{ active_subdomain }}.{{ domain }}:2053?sni={{ active_subdomain }}.{{ domain }}&security=tls&type=grpc&serviceName=vlgrpc#Vless-gRPC-CDN
 vless://{{ vless_vmess_uuid }}@185.72.49.21:443?sni={{ active_subdomain }}.{{ domain }}&security=tls&type=grpc&serviceName=vlgrpc#VLESSgRPC-Shatel
+vless://{{ vless_vmess_uuid }}@ww.sansorchi.net:2053?sni={{ active_subdomain }}.{{ domain }}&security=tls&type=grpc&serviceName=vlgrpc#zVLESSgRPCCC
+vless://{{ vless_vmess_uuid }}@metrix.gheychi.ml:2053?sni={{ active_subdomain }}.{{ domain }}&security=tls&type=grpc&serviceName=vlgrpc#zVLESSgRPCCCC
+vless://{{ vless_vmess_uuid }}@cf.sansorchi.net:2053?sni={{ active_subdomain }}.{{ domain }}&security=tls&type=grpc&serviceName=vlgrpc#zVLESSgRPCCC
+vless://{{ vless_vmess_uuid }}@cf3.sansorchi.net:2053?sni={{ active_subdomain }}.{{ domain }}&security=tls&type=grpc&serviceName=vlgrpc#zVLESSgRPCCC
+vless://{{ vless_vmess_uuid }}@cft13.sansorchi.net:2053?sni={{ active_subdomain }}.{{ domain }}&security=tls&type=grpc&serviceName=vlgrpc#zVLESSgRPCCC
+vless://{{ vless_vmess_uuid }}@moz.sansorchi.net:2053?sni={{ active_subdomain }}.{{ domain }}&security=tls&type=grpc&serviceName=vlgrpc#zVLESSgRPCCC
+vless://{{ vless_vmess_uuid }}@cft1.sansorchi.net:2053?sni={{ active_subdomain }}.{{ domain }}&allowInsecure=1&security=tls&type=grpc&serviceName=vlgrpc#zVLESSgRPCCC
 {% endfor %}
-vless://{{ vless_vmess_uuid }}@ww.sansorchi.net:2053?sni={{ active_subdomain }}.{{ xray_domains[1] }}&security=tls&type=grpc&serviceName=vlgrpc#zVLESSgRPCCC
-vless://{{ vless_vmess_uuid }}@metrix.gheychi.ml:2053?sni={{ active_subdomain }}.{{ xray_domains[1] }}&security=tls&type=grpc&serviceName=vlgrpc#zVLESSgRPCCCC
-vless://{{ vless_vmess_uuid }}@cf.sansorchi.net:2053?sni={{ active_subdomain }}.{{ xray_domains[1] }}&security=tls&type=grpc&serviceName=vlgrpc#zVLESSgRPCCC
-vless://{{ vless_vmess_uuid }}@cf3.sansorchi.net:2053?sni={{ active_subdomain }}.{{ xray_domains[1] }}&security=tls&type=grpc&serviceName=vlgrpc#zVLESSgRPCCC
-vless://{{ vless_vmess_uuid }}@cft13.sansorchi.net:2053?sni={{ active_subdomain }}.{{ xray_domains[1] }}&security=tls&type=grpc&serviceName=vlgrpc#zVLESSgRPCCC
-vless://{{ vless_vmess_uuid }}@moz.sansorchi.net:2053?sni={{ active_subdomain }}.{{ xray_domains[1] }}&security=tls&type=grpc&serviceName=vlgrpc#zVLESSgRPCCC
-vless://{{ vless_vmess_uuid }}@cft1.sansorchi.net:2053?sni={{ active_subdomain }}.{{ xray_domains[1] }}&allowInsecure=1&security=tls&type=grpc&serviceName=vlgrpc#zVLESSgRPCCC
+{% endif %}

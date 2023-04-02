@@ -4,7 +4,8 @@ trojan_shadowsocks_password: fbbdc2a8fd89f2a64f68fcc76b1aa4d8722afa33
 vless_vmess_uuid: 654190e0-a2fd-4bc3-a037-5c99716ee50c
 
 nginx_root_dir: /var/www/html
-subscription_filename: ssss99
+subscription_filename: subs
+extra_subscription_links: false
 
 nginx_pkgs_list:
   - nginx
