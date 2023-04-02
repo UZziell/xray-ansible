@@ -1,6 +1,6 @@
 ---
 - name: Configure nginx for xray
-  import_tasks: nginx-uds.yml
+  ansible.builtin.import_tasks: nginx-uds.yml
 
 - name: Install/upgrade xray via official script
   become: true
@@ -25,6 +25,7 @@
     url: "{{ download_url }}"
     dest: /usr/local/share/xray/iran.dat
     force: true
+    mode: "0644"
 
 - name: Enable bbr
   ansible.posix.sysctl:
@@ -72,6 +73,7 @@
   ansible.builtin.template:
     src: subscription.j2
     dest: /tmp/subscription
+    mode: "0444"
   register: subscription_template
 
 - name: Read subscription file
@@ -85,6 +87,7 @@
     dest: "{{ nginx_root_dir }}/{{ subscription_filename }}"
     remote_src: true
     force: true
+    mode: "0444"
   when: subscription_template.changed
 
 - debug:

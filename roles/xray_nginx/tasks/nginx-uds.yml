@@ -39,7 +39,7 @@
 - name: Install nginx config
   ansible.builtin.template:
     src: nginx-uds.conf.j2
-    dest: "{{nginx_config_dir}}/uds.conf"
+    dest: "{{ nginx_config_dir }}/uds.conf"
     owner: root
     group: root
     mode: "0644"
