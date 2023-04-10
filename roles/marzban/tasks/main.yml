@@ -89,6 +89,9 @@
       UVICORN_SSL_CERTFILE = "{{ marzban_certificate_path }}"
       UVICORN_SSL_KEYFILE = "{{ marzban_certificate_key_path }}"
 
+      TELEGRAM_API_TOKEN = "{{ telegram_api_token }}"
+      TELEGRAM_ADMIN_ID = "{{ telegram_admin_id }}"
+
 - name: Tear down existing compose services
   community.docker.docker_compose:
     project_src: "{{ marzban_dir }}/{{ marzban_config_mode }}"
