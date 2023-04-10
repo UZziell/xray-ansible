@@ -1,0 +1,6 @@
+---
+marzban_data_dir: /var/lib/marzban
+marzban_dir: /opt/marzban
+marzban_config_mode: single-port-proxy #fully-single-port
+marzban_certificate_path: "{{ marzban_data_dir }}/certs/fullchain.pem"
+marzban_certificate_key_path: "{{ marzban_data_dir }}/certs/key.pem"
