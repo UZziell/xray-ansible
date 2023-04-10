@@ -4,15 +4,14 @@
     account_email: "{{ cloudflare_email }}"
     account_api_key: "{{ cloudflare_api_key }}"
     zone: "{{ marzban_domain }}"
-    record_name: "{{ marzban_subdomain }}"
-    record_type: A
-    record_value: "{{ ansible_host }}"
+    name: "{{ marzban_subdomain }}"
+    type: A
+    value: "{{ ansible_host }}"
     state: present
 
 - name: Install pip3
   include_role:
-    name:
-      - packages
+    name: packages
   vars:
     pkgs_list:
       - python3-pip
@@ -45,6 +44,7 @@
     # type: ECC
     # curv: secp256k1
 
+
 - name: Create certificate signing request (CSR) for self-signed certificate
   community.crypto.openssl_csr_pipe:
     privatekey_path: "{{ marzban_certificate_key_path }}"
@@ -64,10 +64,10 @@
     provider: selfsigned
 
 - name: Configure marzban xray.json
-  ansible.builtin.replce:
+  ansible.builtin.replace:
     path: "{{ marzban_dir }}/{{ marzban_config_mode }}/xray_config.json"
-    regexp: "//"
-    replace: ""
+    regexp: "{{ item.regexp }}"
+    replace: "{{ item.replace }}"
   loop:
     - regexp: "//"
       replace: ""
@@ -78,7 +78,7 @@
   ansible.builtin.blockinfile:
     path: "{{ marzban_dir }}/{{ marzban_config_mode }}/env"
     create: true
-    mode: "0600"
+    mode: "0644"
     block: |
       SUDO_USERNAME = "admin"
       SUDO_PASSWORD = "{{ marzban_sudo_password }}"
