@@ -39,22 +39,18 @@
 
 - name: Install project files
   ansible.builtin.template:
-    src: "{{ item.src }}"
-    dest: "{{ marzban_project_dir }}/{{ item.dest }}"
+    src: "{{ item }}.j2"
+    dest: "{{ marzban_project_dir }}/{{ item }}"
     owner: root
     group: root
-    mode: "0644"
+    mode: "0600"
   loop:
-    - src: docker-compose.yaml.j2
-      dest: docker-compose.yaml
-    - src: env.j2
-      dest: env
-    - src: xray_config.json.j2
-      dest: xray_config.json
-    - src: nginx.conf.j2
-      dest: nginx.conf
+    - docker-compose.yaml
+    - env
+    - xray_config.json
+    - nginx.conf
 
-- name: Ensure marzban data directory exists {{ marzban_data_dir }}/certs
+- name: Ensure marzban data directory exists {{ marzban_data_dir }}
   ansible.builtin.file:
     path: "{{ marzban_data_dir }}/certs"
     state: directory

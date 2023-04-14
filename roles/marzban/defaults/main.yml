@@ -11,9 +11,9 @@ marzban_image_tag: latest
 
 # docker-compose vars
 uvicorn_uds: "/run/marzban.socket"
-# uvicorn_port: 8880
-# uvicorn_ssl_certfile: "{{ marzban_container_data_dir }}/certs/fullchain.pem"
-# uvicorn_ssl_keyfile: "{{ marzban_container_data_dir }}/certs/key.pem"
+uvicorn_port: 8880
+uvicorn_ssl_certfile: "{{ marzban_container_data_dir }}/certs/fullchain.pem"
+uvicorn_ssl_keyfile: "{{ marzban_container_data_dir }}/certs/key.pem"
 sqlalchemy_database_url: "sqlite:///{{ marzban_container_data_dir }}/db.sqlite3"
 xray_json: "/xray_config.json"
 xray_fallback_inbound_tag: "VLESS_FALLBACK"
