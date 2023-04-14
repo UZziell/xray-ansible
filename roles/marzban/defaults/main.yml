@@ -1,6 +1,22 @@
 ---
 marzban_data_dir: /var/lib/marzban
-marzban_dir: /opt/marzban
-marzban_config_mode: single-port-proxy #fully-single-port
+marzban_project_dir: /opt/marzban
+marzban_container_data_dir: /var/lib/marzban
+marzban_config_mode: single-port-proxy # fully-single-port
 marzban_certificate_path: "{{ marzban_data_dir }}/certs/fullchain.pem"
 marzban_certificate_key_path: "{{ marzban_data_dir }}/certs/key.pem"
+
+nginx_image_tag: 1.24.0-bullseye
+marzban_image_tag: latest
+
+# docker-compose vars
+uvicorn_uds: "/run/marzban.socket"
+# uvicorn_port: 8880
+# uvicorn_ssl_certfile: "{{ marzban_container_data_dir }}/certs/fullchain.pem"
+# uvicorn_ssl_keyfile: "{{ marzban_container_data_dir }}/certs/key.pem"
+sqlalchemy_database_url: "sqlite:///{{ marzban_container_data_dir }}/db.sqlite3"
+xray_json: "/xray_config.json"
+xray_fallback_inbound_tag: "VLESS_FALLBACK"
+marzban_sudo_username: "admin"
+marzban_sudo_password: "admin"
+xray_subscription_url_prefix: "https://localhost"

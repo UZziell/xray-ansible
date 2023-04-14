@@ -1,0 +1,21 @@
+services:
+  marzban:
+    image: gozargah/marzban:{{ marzban_image_tag | default('latest')}}
+    restart: always
+    env_file: env
+    # network_mode: host
+    ports:
+      - 443:443
+      - 334:334
+      - 80:80
+ 
+    volumes:
+      - {{ marzban_data_dir }}/run:/run
+      - ./xray_config.json:{{ xray_json }}
+      - {{ marzban_data_dir }}:{{ marzban_container_data_dir }}
+
+  nginx:
+    image: nginx:{{ nginx_image_tag }}
+    volumes:
+      - {{ marzban_data_dir }}/run:/run
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf

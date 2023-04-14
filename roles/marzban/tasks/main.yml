@@ -1,6 +1,6 @@
 ---
 - name: Add A record to Cloudflare
-  cloudflare_dns:
+  community.general.cloudflare_dns:
     account_email: "{{ cloudflare_email }}"
     account_api_key: "{{ cloudflare_api_key }}"
     zone: "{{ marzban_domain }}"
@@ -10,7 +10,7 @@
     state: present
 
 - name: Install pip3
-  include_role:
+  ansible.builtin.include_role:
     name: packages
   vars:
     pkgs_list:
@@ -22,28 +22,50 @@
       - docker
       - docker-compose
 
-- name: Clone marzban master branch
-  ansible.builtin.git:
-    repo: https://github.com/Gozargah/Marzban-examples
-    dest: "{{ marzban_dir }}"
-    single_branch: true
-    version: master
-    update: true
-    force: true
+# - name: Clone marzban master branch
+#   ansible.builtin.git:
+#     repo: https://github.com/Gozargah/Marzban-examples
+#     dest: "{{ marzban_project_dir }}"
+#     single_branch: true
+#     version: master
+#     update: true
+#     force: true
 
-- name: Ensure certs directory exists {{ marzban_data_dir }}/certs
+- name: Ensure marzban dir exists {{ marzban_project_dir }}
   ansible.builtin.file:
-    path: /var/lib/marzban/certs
+    path: "{{ marzban_project_dir }}"
+    state: directory
+    mode: "0755"
+
+- name: Install project files
+  ansible.builtin.template:
+    src: "{{ item.src }}"
+    dest: "{{ marzban_project_dir }}/{{ item.dest }}"
+    owner: root
+    group: root
+    mode: "0644"
+  loop:
+    - src: docker-compose.yaml.j2
+      dest: docker-compose.yaml
+    - src: env.j2
+      dest: env
+    - src: xray_config.json.j2
+      dest: xray_config.json
+    - src: nginx.conf.j2
+      dest: nginx.conf
+
+- name: Ensure marzban data directory exists {{ marzban_data_dir }}/certs
+  ansible.builtin.file:
+    path: "{{ marzban_data_dir }}/certs"
     state: directory
     mode: "0755"
 
 - name: Generate EC key
-  openssl_privatekey:
+  community.crypto.openssl_privatekey:
     path: "{{ marzban_certificate_key_path }}"
     # size: 256
     # type: ECC
     # curv: secp256k1
-
 
 - name: Create certificate signing request (CSR) for self-signed certificate
   community.crypto.openssl_csr_pipe:
@@ -63,43 +85,43 @@
     privatekey_path: "{{ marzban_certificate_key_path }}"
     provider: selfsigned
 
-- name: Configure marzban xray.json
-  ansible.builtin.replace:
-    path: "{{ marzban_dir }}/{{ marzban_config_mode }}/xray_config.json"
-    regexp: "{{ item.regexp }}"
-    replace: "{{ item.replace }}"
-  loop:
-    - regexp: "//"
-      replace: ""
-    - regexp: SERVER_NAME
-      replace: "{{ marzban_subdomain }}.{{ marzban_domain }}"
+# - name: Configure marzban xray.json
+#   ansible.builtin.replace:
+#     path: "{{ marzban_project_dir }}/{{ marzban_config_mode }}/xray_config.json"
+#     regexp: "{{ item.regexp }}"
+#     replace: "{{ item.replace }}"
+#   loop:
+#     - regexp: "//"
+#       replace: ""
+#     - regexp: SERVER_NAME
+#       replace: "{{ marzban_subdomain }}.{{ marzban_domain }}"
 
-- name: Configure marzban env file
-  ansible.builtin.blockinfile:
-    path: "{{ marzban_dir }}/{{ marzban_config_mode }}/env"
-    create: true
-    mode: "0644"
-    block: |
-      SUDO_USERNAME = "admin"
-      SUDO_PASSWORD = "{{ marzban_sudo_password }}"
+# - name: Configure marzban env file
+#   ansible.builtin.blockinfile:
+#     path: "{{ marzban_project_dir }}/{{ marzban_config_mode }}/env"
+#     create: true
+#     mode: "0644"
+#     block: |
+#       SUDO_USERNAME = "admin"
+#       SUDO_PASSWORD = "{{ marzban_sudo_password }}"
 
-      XRAY_SUBSCRIPTION_URL_PREFIX = "https://{{ marzban_subdomain }}.{{ marzban_domain }}"
+#       XRAY_SUBSCRIPTION_URL_PREFIX = "https://{{ marzban_subdomain }}.{{ marzban_domain }}"
 
-      UVICORN_PORT = {{ marzban_panel_port }}
-      UVICORN_SSL_CERTFILE = "{{ marzban_certificate_path }}"
-      UVICORN_SSL_KEYFILE = "{{ marzban_certificate_key_path }}"
+#       UVICORN_PORT = {{ marzban_panel_port }}
+#       UVICORN_SSL_CERTFILE = "{{ marzban_certificate_path }}"
+#       UVICORN_SSL_KEYFILE = "{{ marzban_certificate_key_path }}"
 
-      TELEGRAM_API_TOKEN = "{{ telegram_api_token }}"
-      TELEGRAM_ADMIN_ID = "{{ telegram_admin_id }}"
+#       TELEGRAM_API_TOKEN = "{{ telegram_api_token }}"
+#       TELEGRAM_ADMIN_ID = "{{ telegram_admin_id }}"
 
 - name: Tear down existing compose services
   community.docker.docker_compose:
-    project_src: "{{ marzban_dir }}/{{ marzban_config_mode }}"
+    project_src: "{{ marzban_project_dir }}"
     state: absent
 
 - name: Create and start compose services
   community.docker.docker_compose:
-    project_src: "{{ marzban_dir }}/{{ marzban_config_mode }}"
+    project_src: "{{ marzban_project_dir }}"
   register: compose_output
 
 - debug:
