@@ -49,9 +49,6 @@
 
 - name: Check nginx config
   ansible.builtin.command: nginx -t
-  # notify:
-  #   - remove nginx socket files
-  #   - restart nginx service
   tags:
     - restart-services
 

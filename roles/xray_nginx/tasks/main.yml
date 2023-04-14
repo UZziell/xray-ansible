@@ -56,8 +56,6 @@
     mode: "0644"
     # validate: xray run -test -c %s
   register: xray_test_result
-  # notify:
-  #   - restart xray service
 
 - name: Ensure xray service is restarted
   ansible.builtin.systemd:
