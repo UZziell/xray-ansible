@@ -238,29 +238,29 @@
     //         ]
     //     }
     // },
-    // {
-    //     "tag": "VMESS_WS",
-    //     "listen": "@vmess-ws",
-    //     "protocol": "vmess",
-    //     "settings": {
-    //         "clients": []
-    //     },
-    //     "streamSettings": {
-    //         "network": "ws",
-    //         "security": "none",
-    //         "wsSettings": {
-    //             "acceptProxyProtocol": true,
-    //             "path": "/mw"
-    //         }
-    //     },
-    //     "sniffing": {
-    //         "enabled": true,
-    //         "destOverride": [
-    //             "http",
-    //             "tls"
-    //         ]
-    //     }
-    // },
+    {
+        "tag": "VMESS_WS",
+        "listen": "@vmess-ws",
+        "protocol": "vmess",
+        "settings": {
+            "clients": []
+        },
+        "streamSettings": {
+            "network": "ws",
+            "security": "none",
+            "wsSettings": {
+                "acceptProxyProtocol": true,
+                "path": "/mw"
+            }
+        },
+        "sniffing": {
+            "enabled": true,
+            "destOverride": [
+                "http",
+                "tls"
+            ]
+        }
+    },
     // {
     //     "tag": "TROJAN_WS",
     //     "listen": "@trojan-ws",
