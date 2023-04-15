@@ -1,0 +1,198 @@
+---
+- name: Add A record to Cloudflare
+  community.general.cloudflare_dns:
+    account_email: "{{ cloudflare_email }}"
+    account_api_key: "{{ cloudflare_api_key }}"
+    zone: "{{ marzban_domain }}"
+    name: "{{ marzban_subdomain }}"
+    type: A
+    value: "{{ ansible_host }}"
+    state: present
+
+- name: Install pip3
+  ansible.builtin.include_role:
+    name: packages
+  vars:
+    pkgs_list:
+      - python3-pip
+
+- name: Ensure docker and docker-compose modules are installed
+  ansible.builtin.pip:
+    name:
+      - docker
+      - docker-compose
+
+- name: Check architecture 'amd64'
+  ansible.builtin.set_fact:
+    arch: amd64
+  when: ansible_architecture == 'x86_64' or ansible_architecture == 'x64' or ansible_architecture == 'amd64'
+
+- name: Check architecture 'arm64'
+  ansible.builtin.set_fact:
+    arch: arm64
+  when: ansible_architecture == 'aarch64' or ansible_architecture == 'arm64'
+
+- name: Get 3x-ui releases from GitHub API
+  ansible.builtin.uri:
+    url: https://api.github.com/repos/MHSanaei/3x-ui/releases/latest
+    return_content: true
+  register: xui_get_release_result
+
+- name: Download latest release
+  ansible.builtin.get_url:
+    url: "{{ xui_get_release_result.content | from_json | json_query(query) | first }}"
+    dest: /usr/local/x-ui-linux-{{ arch }}.tar
+    mode: 600
+    force: true
+  vars:
+    query: assets[?contains(name,'linux-{{ arch }}')].browser_download_url
+
+- name: Download latest u-ui.sh script
+  ansible.builtin.get_url:
+    url: https://raw.githubusercontent.com/MHSanaei/3x-ui/main/x-ui.sh
+    dest: /usr/bin/x-ui
+    mode: 666
+    force: true
+
+- name: Unarchive downloaded release tarfile
+  ansible.builtin.unarchive:
+    src: /usr/local/x-ui-linux-{{ arch }}.tar
+    dest: /usr/local/
+    remote_src: true
+    mode: "0600"
+
+- name: Ensure binaries are executable
+  ansible.builtin.file:
+    path: "{{ item }}"
+    mode: +x
+  loop:
+    - "{{ xui_dir }}/bin/xray-linux-{{ arch }}"
+    - "{{ xui_dir }}/x-ui"
+    - /usr/bin/x-ui
+
+- name: Install x-ui systemd service unit
+  ansible.builtin.copy:
+    src: "{{ xui_dir }}/x-ui.service"
+    dest: /etc/systemd/system/x-ui.service
+    mode: "0644"
+    remote_src: true
+
+- name: Configure panel username/password
+  ansible.builtin.command: /usr/local/x-ui/x-ui setting -username {{ panel_sudo_username }} -password {{ panel_sudo_password }} -port {{ panel_port }}
+
+- name: Restart and enable x-ui service
+  ansible.builtin.systemd:
+    name: x-ui
+    state: restarted
+    enabled: true
+    daemon_reload: true
+
+# # - name: Clone marzban master branch
+# #   ansible.builtin.git:
+# #     repo: https://github.com/Gozargah/Marzban-examples
+# #     dest: "{{ marzban_project_dir }}"
+# #     single_branch: true
+# #     version: master
+# #     update: true
+# #     force: true
+
+# - name: Ensure marzban dir exists {{ marzban_project_dir }}
+#   ansible.builtin.file:
+#     path: "{{ marzban_project_dir }}"
+#     state: directory
+#     mode: "0755"
+
+# - name: Install project files
+#   ansible.builtin.template:
+#     src: "{{ item.src }}.j2"
+#     dest: "{{ marzban_project_dir }}/{{ item.src }}"
+#     owner: root
+#     group: root
+#     mode: "{{ item.mode | default('0600') }}"
+#   loop:
+#     - src: docker-compose.yaml
+#     - src: env
+#     - src: xray_config.json
+#     - src: nginx.conf
+#       mode: "0644"
+
+# - name: Copy decoy website to project dir `{{ marzban_project_dir }}`
+#   ansible.builtin.copy:
+#     src: files/decoy.html
+#     dest: "{{ marzban_project_dir }}/decoy.html"
+#     mode: "0644"
+
+# - name: Ensure marzban data directory exists {{ marzban_data_dir }}
+#   ansible.builtin.file:
+#     path: "{{ marzban_data_dir }}/certs"
+#     state: directory
+#     mode: "0755"
+
+# - name: Generate EC key
+#   community.crypto.openssl_privatekey:
+#     path: "{{ marzban_certificate_key_path }}"
+#     # size: 256
+#     # type: ECC
+#     # curv: secp256k1
+
+# - name: Create certificate signing request (CSR) for self-signed certificate
+#   community.crypto.openssl_csr_pipe:
+#     privatekey_path: "{{ marzban_certificate_key_path }}"
+#     common_name: "{{ marzban_fake_domain }}"
+#     organization_name: Kawabanga, Inc.
+#     subject_alt_name:
+#       - "DNS:{{ marzban_fake_domain }}"
+#       - "DNS:www.{{ marzban_fake_domain }}"
+#       - "DNS:api.{{ marzban_fake_domain }}"
+#   register: csr
+
+# - name: Create self-signed certificate from CSR
+#   community.crypto.x509_certificate:
+#     path: "{{ marzban_certificate_path }}"
+#     csr_content: "{{ csr.csr }}"
+#     privatekey_path: "{{ marzban_certificate_key_path }}"
+#     provider: selfsigned
+
+# # - name: Configure marzban xray.json
+# #   ansible.builtin.replace:
+# #     path: "{{ marzban_project_dir }}/{{ marzban_config_mode }}/xray_config.json"
+# #     regexp: "{{ item.regexp }}"
+# #     replace: "{{ item.replace }}"
+# #   loop:
+# #     - regexp: "//"
+# #       replace: ""
+# #     - regexp: SERVER_NAME
+# #       replace: "{{ marzban_subdomain }}.{{ marzban_domain }}"
+
+# # - name: Configure marzban env file
+# #   ansible.builtin.blockinfile:
+# #     path: "{{ marzban_project_dir }}/{{ marzban_config_mode }}/env"
+# #     create: true
+# #     mode: "0644"
+# #     block: |
+# #       SUDO_USERNAME = "admin"
+# #       SUDO_PASSWORD = "{{ marzban_sudo_password }}"
+
+# #       XRAY_SUBSCRIPTION_URL_PREFIX = "https://{{ marzban_subdomain }}.{{ marzban_domain }}"
+
+# #       UVICORN_PORT = {{ marzban_panel_port }}
+# #       UVICORN_SSL_CERTFILE = "{{ marzban_certificate_path }}"
+# #       UVICORN_SSL_KEYFILE = "{{ marzban_certificate_key_path }}"
+
+# #       TELEGRAM_API_TOKEN = "{{ telegram_api_token }}"
+# #       TELEGRAM_ADMIN_ID = "{{ telegram_admin_id }}"
+
+# - name: Tear down existing compose services
+#   community.docker.docker_compose:
+#     project_src: "{{ marzban_project_dir }}"
+#     state: absent
+
+# - name: Create and start compose services
+#   community.docker.docker_compose:
+#     project_src: "{{ marzban_project_dir }}"
+#   register: compose_output
+
+# - debug:
+#     msg: |
+#       Panel URL: https://{{ marzban_subdomain }}.{{ marzban_domain }}:{{ marzban_panel_port }}
+#       sudo_password: {{ marzban_sudo_password }}
