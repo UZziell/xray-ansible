@@ -96,7 +96,8 @@
       - xui
     restarted: true
 
-- debug:
+- name: debug panel info
+  ansible.builtin.debug:
     msg: |
       Panel URL: https://{{ xui_subdomain }}.{{ xui_domain }}:{{ xui_port }}
       sudo_user: {{ xui_sudo_username }}

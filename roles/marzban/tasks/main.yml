@@ -125,7 +125,8 @@
     project_src: "{{ marzban_project_dir }}"
   register: compose_output
 
-- debug:
+- name: debug panel info
+  ansible.builtin.debug:
     msg: |
       Panel URL: https://{{ marzban_subdomain }}.{{ marzban_domain }}:{{ marzban_panel_port }}
       sudo_password: {{ marzban_sudo_password }}
