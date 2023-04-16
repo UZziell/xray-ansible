@@ -83,7 +83,7 @@
     path: "{{ wireguard_config }}"
     regexp: "{{ item.regex }}"
     line: "{{ item.line }}"
-  with_items:
+  loop:
     - regex: ^DNS
       line: "#DNS = 1.1.1.1"
     - regex: ^MTU
