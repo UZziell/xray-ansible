@@ -20,6 +20,10 @@
   ansible.builtin.set_fact:
     download_url: "{{ latest_release.content | from_json | json_query('assets[?name==`iran.dat`].browser_download_url') | first }}"
 
+- name: Fetch public IPs
+  ansible.builtin.include_role:
+    name: fetch_public_ips
+
 - name: Download iran.dat file and install it on server
   ansible.builtin.get_url:
     url: "{{ download_url }}"
