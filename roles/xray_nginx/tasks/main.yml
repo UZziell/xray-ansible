@@ -1,4 +1,12 @@
 ---
+- name: Get certificate for xray-nginx setup
+  ansible.builtin.include_role:
+    name: geerlingguy.certbot
+  vars:
+    certbot_certs:
+      - domains:
+          - "{{ xray_subdomain }}.{{ xray_domain }}"
+
 - name: Configure nginx for xray
   ansible.builtin.import_tasks: nginx-uds.yml
 

@@ -1,10 +1,30 @@
-# - name: create the dude
-#   ansible.builtin.user:
-#     name: thedude
-#     shell: /bin/bash
-#     groups: sudo
-#     append: yes
-#     password: "{{ dudepassword|password_hash('sha512') }}"
+- name: Install common packages
+  ansible.builtin.include_role:
+    name: packages
+  vars:
+    pkgs_list:
+      - curl
+      - wget
+      - vim
+      - gnupg
+      - iptables
+      - iptables-persistent
+      - tmux
+      - tcpdump
+      - htop
+      - speedtest-cli
+      - nload
+      - vnstat
+      - netcat-traditional
+      - sudo
+      - cron
+      # - nginx
+      # - obfs4proxy
+      # - tor
+      # - privoxy
+      # - iperf3
+      # - fail2ban
+      # - python3-systemd
 
 - name: Disable sshd 'PasswordAuthentication'
   ansible.builtin.lineinfile:
@@ -14,3 +34,14 @@
     validate: /usr/sbin/sshd -t -f %s
   notify:
     - Restart sshd service
+# - name: create the dude
+#   ansible.builtin.user:
+#     name: thedude
+#     shell: /bin/bash
+#     groups: sudo
+#     append: yes
+#     password: "{{ dudepassword|password_hash('sha512') }}"
+
+- name: Apply personal configs
+  ansible.builtin.include_role:
+    name: personal_configs
