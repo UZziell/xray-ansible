@@ -1,13 +1,11 @@
 ---
 - name: Add A record to Cloudflare
-  community.general.cloudflare_dns:
-    account_email: "{{ cloudflare_email }}"
-    account_api_key: "{{ cloudflare_api_key }}"
-    zone: "{{ marzban_domain }}"
-    name: "{{ marzban_subdomain }}"
-    type: A
-    value: "{{ ansible_host }}"
-    state: present
+  ansible.builtin.include_role:
+    name: cloudflare
+  vars:
+    records:
+      - cloudflare_domain: "{{ marzban_domain }}"
+        cloudflare_subdomain: "{{ marzban_subdomain }}"
 
 - name: Install pip3
   ansible.builtin.include_role:

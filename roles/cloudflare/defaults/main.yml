@@ -1,0 +1,6 @@
+cloudflare_email: ""
+cloudflare_api_key: ""
+
+records:
+  - cloudflare_domain: ""
+    cloudflare_subdomain: ""

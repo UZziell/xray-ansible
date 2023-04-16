@@ -1,0 +1,11 @@
+---
+- name: Add A record to Cloudflare
+  community.general.cloudflare_dns:
+    account_email: "{{ cloudflare_email }}"
+    account_api_key: "{{ cloudflare_api_key }}"
+    zone: "{{ item.cloudflare_domain }}"
+    name: "{{ item.cloudflare_subdomain }}"
+    type: A
+    value: "{{ ansible_host }}"
+    state: present
+  loop: "{{ records }}"
