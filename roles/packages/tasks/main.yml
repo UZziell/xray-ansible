@@ -4,7 +4,7 @@
 #   when: ansible_os_family == 'Debian'
 #   changed_when: false
 
-- name: Install the latest common packages
+- name: Install latest packages
   ansible.builtin.apt:
     name: "{{ item }}"
     state: latest
