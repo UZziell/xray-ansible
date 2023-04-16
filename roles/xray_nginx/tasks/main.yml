@@ -45,7 +45,7 @@
     value: "{{ item.value }}"
     state: present
     sysctl_set: true
-  with_items:
+  loop:
     # - { name: net.core.default_qdisc, value: fq }
     - { name: net.ipv4.tcp_congestion_control, value: bbr }
 

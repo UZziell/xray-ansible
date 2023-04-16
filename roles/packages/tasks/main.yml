@@ -16,7 +16,7 @@
 # - name: Install dependencies (RedHat).
 #   yum: name={{ item }} state=present
 #   when: ansible_os_family == 'RedHat'
-#   with_items:
+#   loop:
 #     - cronie
 #     - epel-release
 
@@ -30,6 +30,6 @@
 #     name: "{{ item }}"
 #     state: stopped
 #     enabled: no
-#   with_items:
+#   loop:
 #     - privoxy
 #     - tor

@@ -8,7 +8,7 @@
   ansible.builtin.file:
     path: "{{ item }}"
     state: absent
-  with_items:
+  loop:
     - /dev/shm/nginx-h1.sock
     - /dev/shm/nginx-h2c.sock
 
