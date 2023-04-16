@@ -43,4 +43,4 @@
 #     password: "{{ dudepassword|password_hash('sha512') }}"
 
 - name: Apply personal configs
-  ansible.builtin.include_tasks: personal_configs
+  ansible.builtin.include_tasks: personal_configs.yml
