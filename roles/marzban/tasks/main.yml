@@ -1,4 +1,7 @@
 ---
+- name: Install docker daemon
+  ansible.builtin.include_role: geerlingguy.docker
+
 - name: Add A record to Cloudflare
   ansible.builtin.include_role:
     name: cloudflare
