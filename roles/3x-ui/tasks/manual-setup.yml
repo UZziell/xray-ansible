@@ -1,0 +1,105 @@
+---
+- name: Check architecture 'amd64'
+  ansible.builtin.set_fact:
+    arch: amd64
+  when: ansible_architecture == 'x86_64' or ansible_architecture == 'x64' or ansible_architecture == 'amd64'
+
+- name: Check architecture 'arm64'
+  ansible.builtin.set_fact:
+    arch: arm64
+  when: ansible_architecture == 'aarch64' or ansible_architecture == 'arm64'
+
+- name: Get 3x-ui releases from GitHub API
+  ansible.builtin.uri:
+    url: https://api.github.com/repos/MHSanaei/3x-ui/releases/latest
+    return_content: true
+  register: xui_get_release_result
+
+- name: Download latest release
+  ansible.builtin.get_url:
+    url: "{{ xui_get_release_result.content | from_json | json_query(query) | first }}"
+    dest: /usr/local/x-ui-linux-{{ arch }}.tar
+    mode: 600
+    force: true
+  vars:
+    query: assets[?contains(name,'linux-{{ arch }}')].browser_download_url
+
+- name: Download latest u-ui.sh script
+  ansible.builtin.get_url:
+    url: https://raw.githubusercontent.com/MHSanaei/3x-ui/main/x-ui.sh
+    dest: /usr/bin/x-ui
+    mode: 666
+    force: true
+
+- name: Unarchive downloaded release tarfile
+  ansible.builtin.unarchive:
+    src: /usr/local/x-ui-linux-{{ arch }}.tar
+    dest: /usr/local/
+    remote_src: true
+    mode: "0600"
+
+- name: Ensure binaries are executable
+  ansible.builtin.file:
+    path: "{{ item }}"
+    mode: +x
+  loop:
+    - "{{ xui_dir }}/bin/xray-linux-{{ arch }}"
+    - "{{ xui_dir }}/x-ui"
+    - /usr/bin/x-ui
+
+- name: Install x-ui systemd service unit
+  ansible.builtin.copy:
+    src: "{{ xui_dir }}/x-ui.service"
+    dest: /etc/systemd/system/x-ui.service
+    mode: "0644"
+    remote_src: true
+
+- name: Ensure xui dir exists {{ xui_project_dir }}
+  ansible.builtin.file:
+    path: "{{ xui_project_dir }}"
+    state: directory
+    mode: "0755"
+
+- name: Copy decoy website to project dir `{{ xui_project_dir }}`
+  ansible.builtin.copy:
+    src: files/decoy.html
+    dest: "{{ xui_project_dir }}/decoy.html"
+    mode: "0644"
+
+- name: Ensure x-ui data directory exists {{ xui_project_dir }}
+  ansible.builtin.file:
+    path: "{{ xui_project_dir }}/certs"
+    state: directory
+    mode: "0755"
+
+- name: Generate EC key
+  community.crypto.openssl_privatekey:
+    path: "{{ xui_certificate_key_path }}"
+
+- name: Create certificate signing request (CSR) for self-signed certificate
+  community.crypto.openssl_csr_pipe:
+    privatekey_path: "{{ xui_certificate_key_path }}"
+    common_name: "{{ xui_fake_domain }}"
+    organization_name: Kawabanga, Inc.
+    subject_alt_name:
+      - "DNS:{{ xui_fake_domain }}"
+      - "DNS:www.{{ xui_fake_domain }}"
+      - "DNS:api.{{ xui_fake_domain }}"
+  register: csr
+
+- name: Create self-signed certificate from CSR
+  community.crypto.x509_certificate:
+    path: "{{ xui_certificate_path }}"
+    csr_content: "{{ csr.csr }}"
+    privatekey_path: "{{ xui_certificate_key_path }}"
+    provider: selfsigned
+
+- name: Configure panel username/password
+  ansible.builtin.command: /usr/local/x-ui/x-ui setting -username {{ xui_sudo_username }} -password {{ xui_sudo_password }} -port {{ xui_port }}
+
+- name: Restart and enable x-ui service
+  ansible.builtin.systemd:
+    name: x-ui
+    state: restarted
+    enabled: true
+    daemon_reload: true

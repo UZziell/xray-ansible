@@ -65,7 +65,7 @@ ansible-galaxy install -r requirements.yml
       - example2.com
 
   roles:
-    - extract_public_ips
+    - fetch_public_ips
     - geerlingguy.certbot
     - xray_nginx
     - warp
