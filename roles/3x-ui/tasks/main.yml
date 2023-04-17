@@ -3,18 +3,40 @@
   ansible.builtin.include_role:
     name: geerlingguy.docker
 
-- name: Install pip3
-  ansible.builtin.include_role:
-    name: packages
-  vars:
-    pkgs_list:
-      - python3-pip
+- name: Ensure 'pip' module is installed
+  block:
+    - name: Get installed pip version
+      ansible.builtin.command: "{{ pip_executable }} --version"
+      register: pip_version_output
+      ignore_errors: true
+      changed_when: false
+
+    - name: Download get-pip.py
+      ansible.builtin.get_url:
+        url: https://bootstrap.pypa.io/get-pip.py
+        dest: /tmp/get-pip.py
+      when: (pip_version_output is failed) or not pip_version_output.stdout is search(pip_version)
+
+    # Install pip if it's not already installed,
+    - name: Install pip
+      ansible.builtin.command: "{{ ansible_python_interpreter | default('python3') }} get-pip.py"
+      when: (pip_version_output is failed) or not pip_version_output.stdout is search('pip ' + pip_version)
+      args:
+        chdir: /tmp
+
+# - name: Install pip3
+#   ansible.builtin.include_role:
+#     name: packages
+#   vars:
+#     pkgs_list:
+#       - python3-pip
 
 - name: Ensure docker and docker-compose python modules are installed
   ansible.builtin.pip:
     name:
       - docker
       - docker-compose
+      - pyopenssl
 
 - name: Add A record to Cloudflare
   ansible.builtin.include_role:
@@ -32,7 +54,7 @@
       - domains:
           - "{{ xray_subdomain }}.{{ xray_domain }}"
 
-- name: Ensure x-ui certs directory exists {{ xui_data_dir }}/certs
+- name: Ensure x-ui certs directory exists {{ xui_data_dir }}
   ansible.builtin.file:
     path: "{{ xui_data_dir }}/certs"
     state: directory
@@ -101,7 +123,7 @@
       - xui
     restarted: true
 
-- name: debug panel info
+- name: Debug panel info
   ansible.builtin.debug:
     msg: |
       Panel URL: https://{{ xui_subdomain }}.{{ xui_domain }}:{{ xui_port }}
