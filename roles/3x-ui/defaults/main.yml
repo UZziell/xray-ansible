@@ -6,13 +6,13 @@ xui_project_dir: /opt/x-ui
 
 xui_certificate_path: "{{ xui_data_dir }}/certs/fullchain.pem"
 xui_certificate_key_path: "{{ xui_data_dir }}/certs/privkey.pem"
-xui_sudo_username: "sudo"
-xui_sudo_password: "rootami"
+xui_sudo_username: sudo
+xui_sudo_password: rootami
 xui_port: 444
 
-xui_domain: "example.com"
-xui_subdomain: "test"
-xui_fake_domain: "google.com"
+xui_domain: example.com
+xui_subdomain: test
+xui_fake_domain: google.com
 
 nginx_image_tag: 1.24.0-bullseye
 xui_image_tag: 1.2.3-230417

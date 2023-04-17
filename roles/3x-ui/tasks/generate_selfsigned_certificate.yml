@@ -1,4 +1,4 @@
-
+---
 - name: Ensure cert dir exists {{ selfsigned_certificate_path | dirname }}
   ansible.builtin.file:
     path: "{{ selfsigned_certificate_path | dirname }}"
