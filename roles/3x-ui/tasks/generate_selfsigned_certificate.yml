@@ -1,0 +1,30 @@
+
+- name: Ensure cert dir exists {{ selfsigned_certificate_path | dirname }}
+  ansible.builtin.file:
+    path: "{{ selfsigned_certificate_path | dirname }}"
+    state: directory
+    mode: "0755"
+
+- name: Generate Private Key
+  community.crypto.openssl_privatekey:
+    path: "{{ selfsigned_certificate_key_path }}"
+  register: keygen_result
+
+- name: Generate certificate signing request (CSR) for self-signed certificate
+  community.crypto.openssl_csr_pipe:
+    privatekey_path: "{{ selfsigned_certificate_key_path }}"
+    common_name: "{{ selfsigned_certificate_common_name }}"
+    organization_name: Kawabanga, Inc.
+    subject_alt_name:
+      - "DNS:{{ selfsigned_certificate_common_name }}"
+      - "DNS:www.{{ selfsigned_certificate_common_name }}"
+  register: csr
+  when: keygen_result.changed
+
+- name: Generate self-signed certificate from CSR
+  community.crypto.x509_certificate:
+    path: "{{ selfsigned_certificate_path }}"
+    csr_content: "{{ csr.csr }}"
+    privatekey_path: "{{ selfsigned_certificate_key_path }}"
+    provider: selfsigned
+  when: keygen_result.changed

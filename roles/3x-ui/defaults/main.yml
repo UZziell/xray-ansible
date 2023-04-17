@@ -1,17 +1,23 @@
 ---
+# xui
 xui_dir: /usr/local/x-ui
 xui_data_dir: /var/lib/x-ui
 xui_project_dir: /opt/x-ui
+
 xui_certificate_path: "{{ xui_data_dir }}/certs/fullchain.pem"
 xui_certificate_key_path: "{{ xui_data_dir }}/certs/privkey.pem"
-
 xui_sudo_username: "sudo"
 xui_sudo_password: "rootami"
-xui_port: 8443
+xui_port: 444
 
 xui_domain: "example.com"
 xui_subdomain: "test"
 xui_fake_domain: "google.com"
 
 nginx_image_tag: 1.24.0-bullseye
-xui_image_tag: 1.2.3-230416
+xui_image_tag: 1.2.3-230417
+
+# selfsigned certificate
+selfsigned_certificate_common_name: speedtest.net
+selfsigned_certificate_path: "{{ xui_data_dir }}/certs/{{ certificate_common_name }}/fullchain.pem"
+selfsigned_certificate_key_path: "{{ xui_data_dir }}/certs/{{ certificate_common_name }}/privkey.pem"
