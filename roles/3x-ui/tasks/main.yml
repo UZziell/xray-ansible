@@ -1,14 +1,7 @@
 ---
 - name: Install docker daemon
-  ansible.builtin.include_role: geerlingguy.docker
-
-- name: Add A record to Cloudflare
   ansible.builtin.include_role:
-    name: cloudflare
-  vars:
-    records:
-      - cloudflare_domain: "{{ xui_domain }}"
-        cloudflare_subdomain: "{{ xui_subdomain }}"
+    name: geerlingguy.docker
 
 - name: Install pip3
   ansible.builtin.include_role:
@@ -23,7 +16,47 @@
       - docker
       - docker-compose
 
-- name: Ensure xui dir exists {{ xui_project_dir }}
+- name: Add A record to Cloudflare
+  ansible.builtin.include_role:
+    name: cloudflare
+  vars:
+    records:
+      - cloudflare_domain: "{{ xui_domain }}"
+        cloudflare_subdomain: "{{ xui_subdomain }}"
+
+- name: Get certificate for 3x-ui setup with certbot
+  ansible.builtin.include_role:
+    name: geerlingguy.certbot
+  vars:
+    certbot_certs:
+      - domains:
+          - "{{ xray_subdomain }}.{{ xray_domain }}"
+
+- name: Ensure x-ui certs directory exists {{ xui_data_dir }}/certs
+  ansible.builtin.file:
+    path: "{{ xui_data_dir }}/certs"
+    state: directory
+    mode: "0755"
+
+- name: Copy '{{ xray_subdomain }}.{{ xray_domain }}' certificate to {{ xui_data_dir }}
+  ansible.builtin.copy:
+    src: "/etc/letsencrypt/live/{{ xray_subdomain }}.{{ xray_domain }}/{{ item }}"
+    dest: "{{ xui_data_dir }}/certs/{{ item }}"
+    mode: "0644"
+    remote_src: true
+  loop:
+    - fullchain.pem
+    - privkey.pem
+
+- name: Generate fake certificates
+  ansible.builtin.include_tasks: generate_selfsigned_certificate.yml
+  vars:
+    certificate_common_name: "{{ item }}"
+  loop:
+    - "{{ xui_fake_domain }}"
+    - "{{ xui_fake_ip }}"
+
+- name: Ensure xui project dir exists {{ xui_project_dir }}
   ansible.builtin.file:
     path: "{{ xui_project_dir }}"
     state: directory
@@ -38,7 +71,7 @@
     mode: "{{ item.mode | default('0600') }}"
   loop:
     - src: docker-compose.yaml
-    - src: env
+    # - src: env
     - src: nginx.conf
       mode: "0644"
 
@@ -47,37 +80,6 @@
     src: files/decoy.html
     dest: "{{ xui_project_dir }}/decoy.html"
     mode: "0644"
-
-- name: Ensure x-ui certs directory exists {{ xui_data_dir }}/certs
-  ansible.builtin.file:
-    path: "{{ xui_data_dir }}/certs"
-    state: directory
-    mode: "0755"
-
-- name: Generate EC key
-  community.crypto.openssl_privatekey:
-    path: "{{ xui_certificate_key_path }}"
-  register: keygen_result
-
-- name: Create certificate signing request (CSR) for self-signed certificate
-  community.crypto.openssl_csr_pipe:
-    privatekey_path: "{{ xui_certificate_key_path }}"
-    common_name: "{{ xui_fake_domain }}"
-    organization_name: Kawabanga, Inc.
-    subject_alt_name:
-      - "DNS:{{ xui_fake_domain }}"
-      - "DNS:www.{{ xui_fake_domain }}"
-      - "DNS:api.{{ xui_fake_domain }}"
-  register: csr
-  when: keygen_result.changed
-
-- name: Create self-signed certificate from CSR
-  community.crypto.x509_certificate:
-    path: "{{ xui_certificate_path }}"
-    csr_content: "{{ csr.csr }}"
-    privatekey_path: "{{ xui_certificate_key_path }}"
-    provider: selfsigned
-  when: keygen_result.changed
 
 # - name: Tear down existing compose services
 #   community.docker.docker_compose:
