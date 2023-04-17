@@ -121,6 +121,8 @@
     # CLOUDFLARE (COMMENTED BY DEFAULT)
     #AllowedIPS = ${CLOUDFLARE_CIDRS}
     EOF
+  args:
+    executable: /bin/bash
   register: allowedips
   when: warp_initial_check.failed
 
