@@ -50,8 +50,15 @@
       fail2ban-client unban -all
       fail2ban-client restart
       fail2ban-client status xray
-      openssl req -x509 -newkey rsa:2048 -keyout domain-key.pem -out domain.pem -sha256 -nodes -days 3650 -subj "/CN=google.com" -addext "subjectAltName = DNS:google.com, DNS:*.google.com"
+      openssl req -x509 -newkey rsa:2048 -keyout domain-key.pem -out domain.pem -sha256 \
+      -nodes -days 3650 -subj "/CN=google.com" -addext "subjectAltName = DNS:google.com, DNS:*.google.com"
       openssl req -x509 -nodes -days 365 -newkey ec:<(openssl ecparam -name secp256k1) -keyout domain-key.pem -out domain.pem -subj "/CN=google.com"
+      docker compose --project-directory /opt/x-ui/ logs -f
+      docker compose --project-directory /opt/x-ui/ exec -it xui /bin/sh
+      docker compose --project-directory /opt/x-ui/ exec xui /app/bin/xray-linux-amd64 tls ping google.com
+      echo 1 >/proc/sys/net/ipv4/ip_forward
+      iptables -t nat -A PREROUTING -p tcp –dport 80 -j DNAT –to-destination 122.164.34.240
+      iptables -t nat -A POSTROUTING -p tcp -d 122.164.34.240 –dport 80 -j MASQUERADE
 
 - name: Configure tmux
   ansible.builtin.lineinfile:
