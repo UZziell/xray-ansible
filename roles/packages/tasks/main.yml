@@ -1,4 +1,9 @@
 ---
+- name: Update apt cache with '--allow-releaseinfo-change'
+  ansible.builtin.command: apt-get update --allow-releaseinfo-change
+  when: ansible_os_family == 'Debian'
+  changed_when: false
+
 # - name: Update apt cache.
 #   apt: update_cache=true cache_valid_time=600
 #   when: ansible_os_family == 'Debian'
@@ -12,7 +17,6 @@
   loop:
     - "{{ pkgs_list }}"
   when: ansible_os_family == 'Debian'
-
 # - name: Install dependencies (RedHat).
 #   yum: name={{ item }} state=present
 #   when: ansible_os_family == 'RedHat'
@@ -23,7 +27,6 @@
 # - name: Install cron (Debian).
 #   apt: name=cron state=present
 #   when: ansible_os_family == 'Debian'
-
 
 # - name: disable default services
 #   ansible.builtin.systemd:
