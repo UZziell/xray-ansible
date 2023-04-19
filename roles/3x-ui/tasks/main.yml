@@ -2,6 +2,10 @@
 - name: Install docker daemon
   ansible.builtin.include_role:
     name: geerlingguy.docker
+  vars:
+    docker_install_compose_plugin: false
+    # docker_compose_package: docker-compose-plugin
+    # docker_compose_package_state: present
 
 - name: Ensure 'pip' module is installed
   block:
