@@ -1,7 +1,16 @@
 .vscode
-**/inventory.y*ml
-**/hosts
 venv/
-play.yml
+
+# playbooks, inventories and hosts
+**/inventory.y*ml
+**/playbook.y*ml
+**/playbooks
+**/inventories
+**/hosts
+
+# pem files
+**/**.pem
+
+# nginx static websites except one
 roles/xray_nginx/files/var/www/*
 !roles/xray_nginx/files/var/www/html
