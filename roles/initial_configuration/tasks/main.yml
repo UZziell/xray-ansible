@@ -36,7 +36,7 @@
     value: "{{ item.value }}"
     state: present
     sysctl_set: true
-  ignore_errors: true
+    ignoreerrors: true
   loop:
     - { name: net.core.default_qdisc, value: fq }
     - { name: net.ipv4.tcp_congestion_control, value: bbr }
