@@ -1,0 +1,86 @@
+---
+- name: Install docker daemon
+  ansible.builtin.include_role:
+    name: geerlingguy.docker
+  vars:
+    docker_install_compose_plugin: true
+    docker_install_compose: false
+
+- name: Ensure 'pip' module is installed
+  block:
+    - name: Get installed pip version
+      ansible.builtin.command: "{{ pip_executable }} --version"
+      register: pip_version_output
+      ignore_errors: true
+      changed_when: false
+
+    - name: Download get-pip.py
+      ansible.builtin.get_url:
+        url: https://bootstrap.pypa.io/get-pip.py
+        dest: /tmp/get-pip.py
+        mode: "0644"
+      when: (pip_version_output is failed) or not pip_version_output.stdout is search(pip_version)
+
+    # Install pip if it's not already installed,
+    - name: Install pip
+      ansible.builtin.command: "{{ ansible_python_interpreter | default('python3') }} get-pip.py"
+      when: (pip_version_output is failed) or not pip_version_output.stdout is search('pip ' + pip_version)
+      args:
+        chdir: /tmp
+
+- name: Ensure docker and docker-compose python modules are installed
+  ansible.builtin.pip:
+    name:
+      - docker
+      - docker-compose
+      - pyopenssl
+
+- name: Add A record to Cloudflare
+  ansible.builtin.include_role:
+    name: cloudflare
+  vars:
+    records:
+      - cloudflare_domain: "{{ xray_domain }}"
+        cloudflare_subdomain: "{{ xray_subdomain }}"
+      - cloudflare_domain: "{{ xray_domain }}"
+        cloudflare_subdomain: "stats.{{ xray_subdomain }}"
+
+- name: Ensure x-ui certs directory exists {{ haproxy_data_dir }}
+  ansible.builtin.file:
+    path: "{{ haproxy_data_dir }}"
+    state: directory
+    mode: "0755"
+
+- name: Install project files
+  ansible.builtin.template:
+    src: "{{ item.src }}.j2"
+    dest: "{{ haproxy_project_dir }}/{{ item.src }}"
+    owner: root
+    group: root
+    mode: "{{ item.mode | default('0600') }}"
+  loop:
+    - src: docker-compose.yaml
+      # - src: env
+      mode: "0644"
+
+- name: Copy haproxy static files to project dir `{{ haproxy_data_dir }}`
+  ansible.builtin.copy:
+    src: files/{{ item }}
+    dest: "{{ haproxy_data_dir }}/{{ item }}"
+    mode: "0644"
+  loop:
+    - certificate.pem
+    - decoy.html
+    - static.html
+
+- name: Create and start compose services
+  community.docker.docker_compose:
+    project_src: "{{ haproxy_project_dir }}"
+    pull: true
+
+- name: Debug panel info
+  ansible.builtin.debug:
+    msg: |
+      HAProxy stats URL: https://stats.{{ xray_subdomain }}.{{ xray_domain }}/stats
+      stats_user: {{ haproxy_stats_user }}
+      stats_password: {{ haproxy_stats_password }}
