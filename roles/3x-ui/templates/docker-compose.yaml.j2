@@ -1,7 +1,7 @@
 version: '3.9'
 services:
   xui:
-    image: docker.io/uzziel/triplex:{{ xui_image_tag }}
+    image: {{ xui_image }}
     # container_name: x-ui
     volumes:
       - {{ xui_data_dir }}/db/:/etc/x-ui/
@@ -20,7 +20,7 @@ services:
       - {{ xui_port }}:{{ xui_port }}
 
   nginx:
-    image: nginx:{{ nginx_image_tag }}
+    image: {{ nginx_image }}
     volumes:
       - {{ xui_project_dir }}/nginx.conf:/etc/nginx/conf.d/default.conf
       - {{ xui_project_dir }}/decoy.html:/usr/share/nginx/html/index.html
