@@ -10,7 +10,7 @@
 - name: Ensure 'pip' module is installed
   block:
     - name: Get installed pip version
-      ansible.builtin.command: "{{ pip_executable }} --version"
+      ansible.builtin.command: python3 -m pip --version
       register: pip_version_output
       ignore_errors: true
       changed_when: false
@@ -19,12 +19,13 @@
       ansible.builtin.get_url:
         url: https://bootstrap.pypa.io/get-pip.py
         dest: /tmp/get-pip.py
-      when: (pip_version_output is failed) or not pip_version_output.stdout is search(pip_version)
+        mode: "0644"
+      when: (pip_version_output is failed) or not pip_version_output.stdout is search('pip ')
 
     # Install pip if it's not already installed,
     - name: Install pip
       ansible.builtin.command: "{{ ansible_python_interpreter | default('python3') }} get-pip.py"
-      when: (pip_version_output is failed) or not pip_version_output.stdout is search('pip ' + pip_version)
+      when: (pip_version_output is failed) or not pip_version_output.stdout is search('pip ')
       args:
         chdir: /tmp
 
@@ -81,6 +82,7 @@
   loop:
     - "{{ xui_fake_domain }}"
     - "{{ xui_fake_ip }}"
+    - www.debian.org
 
 - name: Ensure xui project dir exists {{ xui_project_dir }}
   ansible.builtin.file:
@@ -112,10 +114,11 @@
 #     project_src: "{{ xui_project_dir }}"
 #     state: absent
 
-- name: Create and start compose services
+- name: Ensure compose services are present
   community.docker.docker_compose:
     project_src: "{{ xui_project_dir }}"
     pull: true
+    state: present
 
 - name: Configure Panel
   ansible.builtin.command: docker compose --project-directory {{ xui_project_dir }} exec xui /app/x-ui setting -username {{ xui_sudo_username }} -password {{ xui_sudo_password }} -port {{ xui_port }} -enabletgbot -tgbotchatid {{ telegram_admin_id }} -tgbottoken {{ telegram_api_token }}
