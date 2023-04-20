@@ -1,7 +1,7 @@
 services:
   marzban:
     image: gozargah/marzban:{{ marzban_image_tag | default('latest')}}
-    restart: always
+    restart: unless-stopped
     env_file: env
     # network_mode: host
     ports:
@@ -17,6 +17,7 @@ services:
 
   nginx:
     image: nginx:{{ nginx_image_tag }}
+    restart: unless-stopped
     volumes:
       - {{ marzban_data_dir }}/run:/run
       - ./nginx.conf:/etc/nginx/conf.d/default.conf
