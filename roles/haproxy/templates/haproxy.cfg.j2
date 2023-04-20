@@ -24,23 +24,23 @@ defaults
 
 frontend front-ltc-334
   bind :334 tfo
-  tcp-request inspect-delay 10s
+  tcp-request inspect-delay 5s
   tcp-request content accept if { req_ssl_hello_type 1 }
-  use_backend stats if { req_ssl_sni -i -m beg stat }
+  # use_backend stats if { req_ssl_sni -i -m beg stat }
   default_backend back-ltc
 
 frontend front-lh2-8443
   bind :8443 tfo
-  tcp-request inspect-delay 10s
+  tcp-request inspect-delay 5s
   tcp-request content accept if { req_ssl_hello_type 1 }
-  use_backend stats if { req_ssl_sni -i -m beg stat }
+  # use_backend stats if { req_ssl_sni -i -m beg stat }
   default_backend back-lh2
 
 frontend front-cftls-1443
   bind :1443 tfo
-  tcp-request inspect-delay 10s
+  tcp-request inspect-delay 5s
   tcp-request content accept if { req_ssl_hello_type 1 }
-  use_backend stats if { req_ssl_sni -i -m beg stat }
+  # use_backend stats if { req_ssl_sni -i -m beg stat }
   default_backend cftls
 
 backend back-ltc
@@ -64,6 +64,9 @@ backend cftls
   server s4 104.26.3.238:2053
   server s5 104.16.133.229:2053 backup
 
+backend stats
+  server Local 127.0.0.1:51415
+
 # mode HTTP
 defaults
   log global
@@ -77,14 +80,14 @@ defaults
 
 frontend stats
   mode http
-  bind :51415 ssl crt /usr/local/etc/haproxy/certificate.pem ssl-min-ver TLSv1.1
-  http-request redirect scheme https if !{ ssl_fc }
+  bind :{{ haproxy_stats_port }} ssl crt /usr/local/etc/haproxy/certificate.pem # ssl-min-ver TLSv1.1
+  # http-request redirect scheme https if !{ ssl_fc }
   stats enable
   stats hide-version
   stats uri /stats/
   stats auth {{ haproxy_stats_user }}:{{ haproxy_stats_password }}
   stats admin if TRUE
-  option dontlog-normal
+#  option dontlog-normal
 
 # frontend http-80
 #   bind :80 tfo
@@ -96,8 +99,8 @@ frontend stats
 #   balance roundrobin
 #   server s1 5.230.73.242:2095 maxconn 4096 #check weight 100
 
-backend stats
-  server Local 127.0.0.1:51415
+# backend stats
+#   server Local 127.0.0.1:{{ haproxy_stats_port }}
 
 # backend cfhttp
 #   balance roundrobin
