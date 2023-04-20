@@ -9,7 +9,7 @@
 - name: Ensure 'pip' module is installed
   block:
     - name: Get installed pip version
-      ansible.builtin.command: "{{ pip_executable }} --version"
+      ansible.builtin.command: python3 -m pip --version
       register: pip_version_output
       ignore_errors: true
       changed_when: false
@@ -19,12 +19,12 @@
         url: https://bootstrap.pypa.io/get-pip.py
         dest: /tmp/get-pip.py
         mode: "0644"
-      when: (pip_version_output is failed) or not pip_version_output.stdout is search(pip_version)
+      when: (pip_version_output is failed) or not pip_version_output.stdout is search('pip ')
 
     # Install pip if it's not already installed,
     - name: Install pip
       ansible.builtin.command: "{{ ansible_python_interpreter | default('python3') }} get-pip.py"
-      when: (pip_version_output is failed) or not pip_version_output.stdout is search('pip ' + pip_version)
+      when: (pip_version_output is failed) or not pip_version_output.stdout is search('pip ')
       args:
         chdir: /tmp
 
@@ -54,14 +54,16 @@
 - name: Install project files
   ansible.builtin.template:
     src: "{{ item.src }}.j2"
-    dest: "{{ haproxy_project_dir }}/{{ item.src }}"
+    dest: "{{ item.dest }}"
     owner: root
     group: root
-    mode: "{{ item.mode | default('0600') }}"
+    mode: "{{ item.mode | default('0644') }}"
   loop:
     - src: docker-compose.yaml
+      dest: "{{ haproxy_project_dir }}/docker-compose.yaml"
       # - src: env
-      mode: "0644"
+    - src: haproxy.cfg
+      dest: "{{ haproxy_data_dir }}/haproxy.cfg"
 
 - name: Copy haproxy static files to project dir `{{ haproxy_data_dir }}`
   ansible.builtin.copy:
@@ -77,10 +79,11 @@
   community.docker.docker_compose:
     project_src: "{{ haproxy_project_dir }}"
     pull: true
+    state: present
 
 - name: Debug panel info
   ansible.builtin.debug:
     msg: |
-      HAProxy stats URL: https://stats.{{ xray_subdomain }}.{{ xray_domain }}/stats
+      HAProxy stats URL: https://stats.{{ xray_subdomain }}.{{ xray_domain }}:{{ haproxy_stats_port }}/stats
       stats_user: {{ haproxy_stats_user }}
       stats_password: {{ haproxy_stats_password }}

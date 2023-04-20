@@ -15,8 +15,8 @@ xui_subdomain: test
 xui_fake_domain: google.com
 
 nginx_image: nginx:1.24.0-bullseye
-# xui_image_tag: 1.2.3-230417
-xui_image: docker.io/uzziel/triplex:1.2.6-230420
+xui_image: docker.io/uzziel/triple:1.2.3-230417
+# xui_image: docker.io/uzziel/triplex:1.2.6-230420
 
 # selfsigned certificate
 selfsigned_certificate_common_name: speedtest.net
