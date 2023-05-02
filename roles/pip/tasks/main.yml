@@ -1,0 +1,28 @@
+---
+- name: Ensure python3-distutils package is installed
+  ansible.builtin.apt:
+    name: python3-distutils
+    state: present
+    update_cache: true
+    cache_valid_time: 3600
+  when: ansible_os_family == 'Debian'
+
+- name: Get installed pip version
+  ansible.builtin.command: python3 -m pip --version
+  register: pip_version_output
+  ignore_errors: true
+  changed_when: false
+
+- name: Download get-pip.py
+  ansible.builtin.get_url:
+    url: https://bootstrap.pypa.io/get-pip.py
+    dest: /tmp/get-pip.py
+    mode: "0644"
+  when: (pip_version_output is failed) or not pip_version_output.stdout is search('pip ')
+
+# Install pip if it's not already installed,
+- name: Install pip
+  ansible.builtin.command: "{{ ansible_python_interpreter | default('python3') }} get-pip.py"
+  args:
+    chdir: /tmp
+  when: (pip_version_output is failed) or not pip_version_output.stdout is search('pip ')
