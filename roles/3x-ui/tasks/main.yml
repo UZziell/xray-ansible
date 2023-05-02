@@ -43,6 +43,11 @@
       - docker-compose
       - pyopenssl
 
+- name: Log into DockerHub
+  community.docker.docker_login:
+    username: "{{ dockerhub_username }}"
+    password: "{{ dockerhub_password }}"
+
 - name: Add A record to Cloudflare
   ansible.builtin.include_role:
     name: cloudflare
@@ -59,11 +64,14 @@
       - domains:
           - "{{ xray_subdomain }}.{{ xray_domain }}"
 
-- name: Ensure x-ui certs directory exists {{ xui_data_dir }}
+- name: Ensure x-ui directories exist
   ansible.builtin.file:
-    path: "{{ xui_data_dir }}/certs"
+    path: "{{ item }}"
     state: directory
     mode: "0755"
+  loop:
+    - "{{ xui_data_dir }}/certs"
+    - "{{ xui_project_dir }}/html"
 
 - name: Copy '{{ xray_subdomain }}.{{ xray_domain }}' certificate to {{ xui_data_dir }}
   ansible.builtin.copy:
@@ -106,8 +114,16 @@
 - name: Copy decoy website to project dir `{{ xui_project_dir }}`
   ansible.builtin.copy:
     src: files/decoy.html
-    dest: "{{ xui_project_dir }}/decoy.html"
+    dest: "{{ xui_project_dir }}/html/index.html"
     mode: "0644"
+
+- name: Create download files
+  community.general.filesize:
+    path: "{{ xui_project_dir }}/html/{{ item }}mb"
+    size: "{{ item }}m"
+  loop:
+    - 10
+    - 20
 
 # - name: Tear down existing compose services
 #   community.docker.docker_compose:
