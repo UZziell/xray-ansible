@@ -7,5 +7,6 @@
     name: "{{ item.cloudflare_subdomain }}"
     type: A
     value: "{{ ansible_host }}"
+    ttl: 120
     state: present
   loop: "{{ records }}"
