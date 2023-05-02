@@ -6,7 +6,6 @@ services:
     volumes:
       - {{ xui_data_dir }}/db/:/etc/x-ui/
       - {{ xui_data_dir }}/certs/:/etc/x-ui/certs/
-     # - {{ xui_data_dir }}/certs/:/etc/ssl/certs/
     restart: unless-stopped
     # network_mode: host
     ports:
@@ -24,4 +23,4 @@ services:
     restart: unless-stopped
     volumes:
       - {{ xui_project_dir }}/nginx.conf:/etc/nginx/conf.d/default.conf
-      - {{ xui_project_dir }}/decoy.html:/usr/share/nginx/html/index.html
+      - {{ xui_project_dir }}/html:/usr/share/nginx/html
