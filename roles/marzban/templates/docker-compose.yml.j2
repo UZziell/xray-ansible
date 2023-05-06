@@ -1,0 +1,11 @@
+services:
+  marzban:
+    image: gozargah/marzban:latest
+    restart: always
+    env_file: env
+    network_mode: host
+
+    volumes:
+      - ./xray_config.json:{{ xray_json }}
+      - {{ marzban_data_dir }}:{{ marzban_container_data_dir }}
+      - ./iran.dat:/usr/local/share/xray/iran.dat

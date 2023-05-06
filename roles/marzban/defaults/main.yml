@@ -2,7 +2,7 @@
 marzban_data_dir: /var/lib/marzban
 marzban_project_dir: /opt/marzban
 marzban_container_data_dir: /var/lib/marzban
-marzban_config_mode: single-port-proxy # fully-single-port
+# marzban_config_mode: single-port-proxy # fully-single-port
 marzban_certificate_path: "{{ marzban_data_dir }}/certs/fullchain.pem"
 marzban_certificate_key_path: "{{ marzban_data_dir }}/certs/key.pem"
 
@@ -16,7 +16,7 @@ uvicorn_ssl_certfile: "{{ marzban_container_data_dir }}/certs/fullchain.pem"
 uvicorn_ssl_keyfile: "{{ marzban_container_data_dir }}/certs/key.pem"
 sqlalchemy_database_url: "sqlite:///{{ marzban_container_data_dir }}/db.sqlite3"
 xray_json: /xray_config.json
-xray_fallback_inbound_tag: VLESS_FALLBACK
+xray_fallback_inbound_tag: TROJAN_FALLBACK_INBOUND # VLESS_FALLBACK
 marzban_sudo_username: admin
 marzban_sudo_password: admin
 xray_subscription_url_prefix: https://localhost
