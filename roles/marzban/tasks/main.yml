@@ -47,17 +47,20 @@
     group: root
     mode: "{{ item.mode | default('0600') }}"
   loop:
-    - src: docker-compose.yaml
+    - src: docker-compose.yml
     - src: env
     - src: xray_config.json
-    - src: nginx.conf
-      mode: "0644"
+    # - src: nginx.conf
+    #   mode: "0644"
 
 - name: Copy decoy website to project dir `{{ marzban_project_dir }}`
   ansible.builtin.copy:
-    src: files/decoy.html
-    dest: "{{ marzban_project_dir }}/decoy.html"
+    src: files/{{ item }}
+    dest: "{{ marzban_project_dir }}/"
     mode: "0644"
+  loop:
+    - decoy.html
+    - iran.dat
 
 - name: Ensure marzban data directory exists {{ marzban_data_dir }}
   ansible.builtin.file:
@@ -112,7 +115,7 @@
 
 #       XRAY_SUBSCRIPTION_URL_PREFIX = "https://{{ marzban_subdomain }}.{{ marzban_domain }}"
 
-#       UVICORN_PORT = {{ marzban_panel_port }}
+#       UVICORN_PORT = {{ uvicorn_port }}
 #       UVICORN_SSL_CERTFILE = "{{ marzban_certificate_path }}"
 #       UVICORN_SSL_KEYFILE = "{{ marzban_certificate_key_path }}"
 
@@ -129,8 +132,8 @@
     project_src: "{{ marzban_project_dir }}"
   register: compose_output
 
-- name: debug panel info
+- name: DEBUG panel info
   ansible.builtin.debug:
     msg: |
-      Panel URL: https://{{ marzban_subdomain }}.{{ marzban_domain }}:{{ marzban_panel_port }}
+      Panel URL: https://{{ marzban_subdomain }}.{{ marzban_domain }}:{{ uvicorn_port }}
       sudo_password: {{ marzban_sudo_password }}
