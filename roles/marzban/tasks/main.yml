@@ -61,6 +61,7 @@
   loop:
     - decoy.html
     - iran.dat
+    - nginx.conf
 
 - name: Ensure marzban data directory exists {{ marzban_data_dir }}
   ansible.builtin.file:
