@@ -9,3 +9,11 @@ services:
       - ./xray_config.json:{{ xray_json }}
       - {{ marzban_data_dir }}:{{ marzban_container_data_dir }}
       - ./iran.dat:/usr/local/share/xray/iran.dat
+
+  nginx:
+    image: nginx:{{ nginx_image_tag }}
+    restart: unless-stopped
+    network_mode: host
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf
+      - ./decoy.html:/usr/share/nginx/html/index.html
