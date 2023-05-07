@@ -4,7 +4,7 @@
 
 - name: Set hostname
   ansible.builtin.hostname:
-    name: "{{ inventory_hostname }}"
+    name: "{{ inventory_hostname }}-{{ ansible_host }}"
 
 - name: Update apt repo and cache on all Debian/Ubuntu boxes
   ansible.builtin.apt:
