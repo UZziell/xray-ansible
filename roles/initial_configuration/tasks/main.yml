@@ -96,13 +96,13 @@
 #     append: yes
 #     password: "{{ dudepassword|password_hash('sha512') }}"
 
-- name: Check if a reboot is needed on all servers
+- name: Check if reboot is needed
   ansible.builtin.stat:
     path: /var/run/reboot-required
     get_md5: false
   register: reboot_required_file
 
-- name: Reboot the box if kernel updated
+- name: Reboot the box
   ansible.builtin.reboot:
     msg: Reboot initiated by Ansible for kernel updates
     connect_timeout: 5
