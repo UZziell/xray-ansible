@@ -5,14 +5,16 @@ services:
     volumes:
       - {{ haproxy_data_dir }}:/usr/local/etc/haproxy
     restart: unless-stopped
-    ports:
-      # - 80:80
-      - 443:443
-      - 334:334
-      - 2095:2095
-      - 2053:2053
-      - 1443:1443
-      - 8443:8443
-      - {{ haproxy_stats_port }}:{{ haproxy_stats_port }}
+    user: "0:0"
+    # ports:
+    #   # - 80:80
+    #   - 443:443
+    #   - 334:334
+    #   - 2095:2095
+    #   - 2053:2053
+    #   - 1443:1443
+    #   - 8443:8443
+    #   - {{ haproxy_stats_port }}:{{ haproxy_stats_port }}
     cap_add:
       - NET_BIND_SERVICE
+    network_mode: host
