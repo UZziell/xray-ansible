@@ -6,27 +6,9 @@
     docker_install_compose_plugin: true
     docker_install_compose: false
 
-- name: Ensure 'pip' module is installed
-  block:
-    - name: Get installed pip version
-      ansible.builtin.command: python3 -m pip --version
-      register: pip_version_output
-      ignore_errors: true
-      changed_when: false
-
-    - name: Download get-pip.py
-      ansible.builtin.get_url:
-        url: https://bootstrap.pypa.io/get-pip.py
-        dest: /tmp/get-pip.py
-        mode: "0644"
-      when: (pip_version_output is failed) or not pip_version_output.stdout is search('pip ')
-
-    # Install pip if it's not already installed,
-    - name: Install pip
-      ansible.builtin.command: "{{ ansible_python_interpreter | default('python3') }} get-pip.py"
-      when: (pip_version_output is failed) or not pip_version_output.stdout is search('pip ')
-      args:
-        chdir: /tmp
+- name: Ensure python3 pip module is installed
+  ansible.builtin.include_role:
+    name: pip
 
 - name: Ensure docker and docker-compose python modules are installed
   ansible.builtin.pip:
@@ -42,8 +24,8 @@
     records:
       - cloudflare_domain: "{{ xray_domain }}"
         cloudflare_subdomain: "{{ xray_subdomain }}"
-      - cloudflare_domain: "{{ xray_domain }}"
-        cloudflare_subdomain: "stats.{{ xray_subdomain }}"
+      # - cloudflare_domain: "{{ xray_domain }}"
+      #   cloudflare_subdomain: "stats.{{ xray_subdomain }}"
 
 - name: Ensure x-ui certs directory exists {{ haproxy_data_dir }}
   ansible.builtin.file:
