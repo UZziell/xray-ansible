@@ -18,6 +18,16 @@
       - docker-compose
       - pyopenssl
 
+- name: Allow connections on ports 80,443,444
+  ansible.builtin.iptables:
+    chain: INPUT
+    protocol: tcp
+    destination_ports:
+      - 80
+      - 443
+      - 444
+    jump: ACCEPT
+
 - name: Log into DockerHub
   community.docker.docker_login:
     username: "{{ dockerhub_username }}"
@@ -39,13 +49,14 @@
       - domains:
           - "{{ xray_subdomain }}.{{ xray_domain }}"
 
-- name: Ensure x-ui directories exist
+- name: Ensure x-ui data directories exist
   ansible.builtin.file:
     path: "{{ item }}"
     state: directory
     mode: "0755"
   loop:
     - "{{ xui_data_dir }}/certs"
+    - "{{ xui_data_dir }}/db"
     - "{{ xui_project_dir }}/html"
 
 - name: Copy '{{ xray_subdomain }}.{{ xray_domain }}' certificate to {{ xui_data_dir }}
@@ -58,6 +69,13 @@
     - fullchain.pem
     - privkey.pem
 
+- name: Copy x-ui database
+  ansible.builtin.copy:
+    src: files/x-ui.db
+    dest: "{{ xui_data_dir }}/db/"
+    mode: "0644"
+  when: "{{ lookup('ansible.builtin.fileglob', 'files/x-ui.db') != [] }}"
+
 - name: Generate fake certificates
   ansible.builtin.include_tasks: generate_selfsigned_certificate.yml
   vars:
@@ -66,12 +84,6 @@
     - "{{ xui_fake_domain }}"
     - "{{ xui_fake_ip }}"
     - www.debian.org
-
-- name: Ensure xui project dir exists {{ xui_project_dir }}
-  ansible.builtin.file:
-    path: "{{ xui_project_dir }}"
-    state: directory
-    mode: "0755"
 
 - name: Install project files
   ansible.builtin.template:
@@ -99,11 +111,6 @@
   loop:
     - 10
     - 20
-
-# - name: Tear down existing compose services
-#   community.docker.docker_compose:
-#     project_src: "{{ xui_project_dir }}"
-#     state: absent
 
 - name: Ensure compose services are present
   community.docker.docker_compose:
