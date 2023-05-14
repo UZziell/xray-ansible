@@ -10,7 +10,7 @@
   community.general.timezone:
     name: UTC
 
-- name: Update apt repo and cache on all Debian/Ubuntu boxes
+- name: Update apt repo and cache
   ansible.builtin.apt:
     update_cache: true
     force_apt_get: true
@@ -25,7 +25,7 @@
   ansible.builtin.include_role:
     name: pip
 
-- name: Install common packages
+- name: Install common packages from pkg_list
   ansible.builtin.include_role:
     name: packages
   vars:
@@ -101,6 +101,36 @@
 #     groups: sudo
 #     append: yes
 #     password: "{{ dudepassword|password_hash('sha512') }}"
+
+- name: Copy decoy website to project dir `{{ xui_project_dir }}`
+  ansible.builtin.copy:
+    src: files/resolved.conf
+    dest: /etc/systemd/resolved.conf
+    mode: "0644"
+  register: __systemd_resolved_configuration
+
+- name: enable systemd-resolved service and assure it is started
+  systemd:
+    name: systemd-resolved
+    enabled: yes
+    state: >-
+      {{
+        __systemd_resolved_configuration.changed |
+          default(False) |
+          ternary("restarted", "started")
+      }}
+
+- name: Backup original resolv.conf to resolv.conf.original
+  ansible.builtin.copy:
+    src: /etc/resolv.conf
+    dest: /etc/resolv.conf.original
+
+- name: Link /etc/resolv.conf to stub-resolver
+  ansible.builtin.file:
+    src: /run/systemd/resolve/stub-resolv.conf
+    dest: /etc/resolv.conf
+    state: link
+    force: true
 
 - name: Check if reboot is needed
   ansible.builtin.stat:
