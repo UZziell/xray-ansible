@@ -8,5 +8,7 @@
     type: A
     value: "{{ ansible_host }}"
     ttl: 120
+    # The record should be the only one for that record type and record name.
+    solo: true
     state: present
   loop: "{{ records }}"
