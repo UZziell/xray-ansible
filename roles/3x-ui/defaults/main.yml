@@ -17,7 +17,7 @@ xui_fake_domain: google.com
 nginx_image: nginx:1.24.0-bullseye
 xui_image: docker.io/uzziel/triplex:1.3.4-230502
 
-# selfsigned certificate
+# self-signed certificate
 selfsigned_certificate_common_name: speedtest.net
-selfsigned_certificate_path: "{{ xui_data_dir }}/certs/{{ certificate_common_name }}/fullchain.pem"
-selfsigned_certificate_key_path: "{{ xui_data_dir }}/certs/{{ certificate_common_name }}/privkey.pem"
+selfsigned_certificate_path: "{{ xui_data_dir }}/certs/{{ selfsigned_certificate_common_name }}/fullchain.pem"
+selfsigned_certificate_key_path: "{{ xui_data_dir }}/certs/{{ selfsigned_certificate_common_name }}/privkey.pem"

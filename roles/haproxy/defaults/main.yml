@@ -10,5 +10,5 @@ haproxy_stats_port: 51415
 
 # selfsigned certificate
 selfsigned_certificate_common_name: speedtest.net
-selfsigned_certificate_path: "{{ xui_data_dir }}/certs/{{ certificate_common_name }}/fullchain.pem"
-selfsigned_certificate_key_path: "{{ xui_data_dir }}/certs/{{ certificate_common_name }}/privkey.pem"
+selfsigned_certificate_path: "{{ xui_data_dir }}/certs/{{ certificaselfsigned_certificate_common_namete_common_name }}/fullchain.pem"
+selfsigned_certificate_key_path: "{{ xui_data_dir }}/certs/{{ selfsigned_certificate_common_name }}/privkey.pem"
