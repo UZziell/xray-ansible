@@ -41,14 +41,6 @@
       - cloudflare_domain: "{{ xui_domain }}"
         cloudflare_subdomain: "{{ xui_subdomain }}"
 
-- name: Get certificate for 3x-ui setup with certbot
-  ansible.builtin.include_role:
-    name: geerlingguy.certbot
-  vars:
-    certbot_certs:
-      - domains:
-          - "{{ xray_subdomain }}.{{ xray_domain }}"
-
 - name: Ensure x-ui data directories exist
   ansible.builtin.file:
     path: "{{ item }}"
@@ -58,6 +50,14 @@
     - "{{ xui_data_dir }}/certs"
     - "{{ xui_data_dir }}/db"
     - "{{ xui_project_dir }}/html"
+
+- name: Get certificate via certbot for {{ xray_subdomain }}.{{ xray_domain }}
+  ansible.builtin.include_role:
+    name: geerlingguy.certbot
+  vars:
+    certbot_certs:
+      - domains:
+          - "{{ xray_subdomain }}.{{ xray_domain }}"
 
 - name: Copy '{{ xray_subdomain }}.{{ xray_domain }}' certificate to {{ xui_data_dir }}
   ansible.builtin.copy:
@@ -69,7 +69,7 @@
     - fullchain.pem
     - privkey.pem
 
-- name: Copy x-ui database
+- name: Copy local x-ui.db to remote
   ansible.builtin.copy:
     src: files/x-ui.db
     dest: "{{ xui_data_dir }}/db/"
@@ -79,11 +79,23 @@
 - name: Generate fake certificates
   ansible.builtin.include_tasks: generate_selfsigned_certificate.yml
   vars:
-    certificate_common_name: "{{ item }}"
+    selfsigned_certificate_common_name: "{{ item }}"
   loop:
     - "{{ xui_fake_domain }}"
-    - "{{ xui_fake_ip }}"
-    - www.debian.org
+#     - "{{ xui_fake_ip }}"
+#     - www.debian.org
+#     - "{{ xray_subdomain }}.{{ xray_domain }}" # To Delete (fake panel certificate)
+
+# # To delete (fake panel certificate)
+# - name: Copy fake '{{ xray_subdomain }}.{{ xray_domain }}' certificate to {{ xui_data_dir }}
+#   ansible.builtin.copy:
+#     src: "{{ xui_data_dir }}/certs/{{ xray_subdomain }}.{{ xray_domain }}/{{ item }}"
+#     dest: "{{ xui_data_dir }}/certs/{{ item }}"
+#     mode: "0644"
+#     remote_src: true
+#   loop:
+#     - fullchain.pem
+#     - privkey.pem
 
 - name: Install project files
   ansible.builtin.template:
@@ -134,3 +146,8 @@
       Panel URL: https://{{ xui_subdomain }}.{{ xui_domain }}:{{ xui_port }}
       sudo_user: {{ xui_sudo_username }}
       sudo_password: {{ xui_sudo_password }}
+
+- name: Run command on manager node
+  become_user: "{{ ansible_env.USER }}"
+  local_action: shell /usr/bin/notify-send 'Playbook finished!!!!!!!'; /usr/bin/firefox-developer-edition https://{{ xui_subdomain }}.{{ xui_domain }}:{{ xui_port }}/panel/panel
+  ignore_errors: true
