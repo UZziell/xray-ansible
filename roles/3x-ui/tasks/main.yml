@@ -58,6 +58,7 @@
     certbot_certs:
       - domains:
           - "{{ xray_subdomain }}.{{ xray_domain }}"
+  when: get_real_certificate_with_certbot
 
 - name: Copy '{{ xray_subdomain }}.{{ xray_domain }}' certificate to {{ xui_data_dir }}
   ansible.builtin.copy:
@@ -68,6 +69,7 @@
   loop:
     - fullchain.pem
     - privkey.pem
+  when: get_real_certificate_with_certbot
 
 - name: Copy local x-ui.db to remote
   ansible.builtin.copy:
@@ -86,16 +88,23 @@
 #     - www.debian.org
 #     - "{{ xray_subdomain }}.{{ xray_domain }}" # To Delete (fake panel certificate)
 
-# # To delete (fake panel certificate)
-# - name: Copy fake '{{ xray_subdomain }}.{{ xray_domain }}' certificate to {{ xui_data_dir }}
-#   ansible.builtin.copy:
-#     src: "{{ xui_data_dir }}/certs/{{ xray_subdomain }}.{{ xray_domain }}/{{ item }}"
-#     dest: "{{ xui_data_dir }}/certs/{{ item }}"
-#     mode: "0644"
-#     remote_src: true
-#   loop:
-#     - fullchain.pem
-#     - privkey.pem
+- name: Generate fake certificate for panel
+  ansible.builtin.include_tasks: generate_selfsigned_certificate.yml
+  vars:
+    selfsigned_certificate_common_name: "{{ xray_subdomain }}.{{ xray_domain }}"
+  when: not get_real_certificate_with_certbot
+
+# fake certificate for panel
+- name: Copy fake panel certificate '{{ xray_subdomain }}.{{ xray_domain }}' to {{ xui_data_dir }}
+  ansible.builtin.copy:
+    src: "{{ xui_data_dir }}/certs/{{ xray_subdomain }}.{{ xray_domain }}/{{ item }}"
+    dest: "{{ xui_data_dir }}/certs/{{ item }}"
+    mode: "0644"
+    remote_src: true
+  loop:
+    - fullchain.pem
+    - privkey.pem
+  when: not get_real_certificate_with_certbot
 
 - name: Install project files
   ansible.builtin.template:
@@ -147,7 +156,7 @@
       sudo_user: {{ xui_sudo_username }}
       sudo_password: {{ xui_sudo_password }}
 
-- name: Run command on manager node
+- name: Send notification in manager node
   become_user: "{{ ansible_env.USER }}"
   local_action: shell /usr/bin/notify-send 'Playbook finished!!!!!!!'; /usr/bin/firefox-developer-edition https://{{ xui_subdomain }}.{{ xui_domain }}:{{ xui_port }}/panel/panel
   ignore_errors: true
