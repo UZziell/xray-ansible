@@ -4,10 +4,14 @@ services:
     image: {{ xui_image }}
     # container_name: x-ui
     volumes:
-      - {{ xui_data_dir }}/db/:/etc/x-ui/
-      - {{ xui_data_dir }}/certs/:/etc/x-ui/certs/
+      - {{ xui_data_dir }}/db:{{ xui_db_folder }}
+      - {{ xui_data_dir }}/certs:/etc/x-ui/certs
+      - {{ xui_data_dir }}/certs:/etc/xui/certs # to delete
+
     restart: unless-stopped
     # network_mode: host
+    environment:
+      - XUI_DB_FOLDER={{ xui_db_folder }}
     ports:
       - 80:80
       - 443:443
