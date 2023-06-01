@@ -32,6 +32,7 @@
   community.docker.docker_login:
     username: "{{ dockerhub_username }}"
     password: "{{ dockerhub_password }}"
+  ignore_errors: true
 
 - name: Add A record to Cloudflare
   ansible.builtin.include_role:
@@ -141,6 +142,7 @@
 
 - name: Configure Panel
   ansible.builtin.command: docker compose --project-directory {{ xui_project_dir }} exec xui /app/x-ui setting -username {{ xui_sudo_username }} -password {{ xui_sudo_password }} -port {{ xui_port }} -enabletgbot -tgbotchatid {{ telegram_admin_id }} -tgbottoken {{ telegram_api_token }}
+  when: "{{ lookup('ansible.builtin.fileglob', 'files/x-ui.db') == [] }}"
 
 - name: Create and start xui service
   community.docker.docker_compose:
@@ -158,5 +160,5 @@
 
 - name: Send notification in manager node
   become_user: "{{ ansible_env.USER }}"
-  local_action: shell /usr/bin/firefox-developer-edition https://{{ xui_subdomain }}.{{ xui_domain }}:{{ xui_port }}/panel/panel; /usr/bin/notify-send 'Playbook finished!!!!!!!';
+  local_action: shell /usr/bin/firefox-developer-edition https://{{ xui_subdomain }}.{{ xui_domain }}:{{ xui_port }}/; /usr/bin/notify-send 'Playbook finished!!!!!!!';
   ignore_errors: true
