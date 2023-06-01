@@ -94,6 +94,7 @@
     validate: /usr/sbin/sshd -t -f %s
   notify:
     - Restart sshd service
+
 # - name: create the dude
 #   ansible.builtin.user:
 #     name: thedude
