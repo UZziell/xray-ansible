@@ -158,5 +158,5 @@
 
 - name: Send notification in manager node
   become_user: "{{ ansible_env.USER }}"
-  local_action: shell /usr/bin/notify-send 'Playbook finished!!!!!!!'; /usr/bin/firefox-developer-edition https://{{ xui_subdomain }}.{{ xui_domain }}:{{ xui_port }}/panel/panel
+  local_action: shell /usr/bin/firefox-developer-edition https://{{ xui_subdomain }}.{{ xui_domain }}:{{ xui_port }}/panel/panel; /usr/bin/notify-send 'Playbook finished!!!!!!!';
   ignore_errors: true
