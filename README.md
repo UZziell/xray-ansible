@@ -1,6 +1,10 @@
 # Xray Ansible Role
 
-An Ansible Role that installs [Xray](https://github.com/XTLS/Xray-corex), Nginx and [WARP](https://cloudflarewarp.com/) on Linux (Tested on Debian and Ubuntu)
+An Ansible Role to deploy different [Xray](https://github.com/XTLS/Xray-corex) setups along with Nginx and [WARP](https://cloudflarewarp.com/) on Linux (Tested on Debian and Ubuntu)
+These are what's included:
+* [3x-ui](https://github.com/MHSanaei/3x-ui)
+* [marzban](https://github.com/Gozargah/Marzban)
+* [WARP](https://cloudflarewarp.com/)
 
 ## Role Variables
 
@@ -26,7 +30,11 @@ Available variables are listed below:
 
 ## Requirements
 
-- [certbot](https://galaxy.ansible.com/geerlingguy/certbot/) role is used to get certificates for the given domains. It should be installed with the following command:
+- [certbot](https://galaxy.ansible.com/geerlingguy/certbot/) is used to get certificates for the given domains.
+
+- [docker](https://galaxy.ansible.com/geerlingguy/docker/) is used to deploy panels.
+
+They can be installed with the following command(provided that ansible-galaxy is already installed and available):
 
 ```
 ansible-galaxy install -r requirements.yml
