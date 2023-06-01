@@ -8,7 +8,7 @@ xui_certificate_path: "{{ xui_data_dir }}/certs/fullchain.pem"
 xui_certificate_key_path: "{{ xui_data_dir }}/certs/privkey.pem"
 xui_sudo_username: sudo
 xui_sudo_password: rootami
-xui_port: 444
+xui_port: 445
 xui_db_folder: /etc/x-ui/db
 
 xui_domain: example.com
