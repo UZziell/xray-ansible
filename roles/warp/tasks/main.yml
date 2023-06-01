@@ -119,7 +119,7 @@
     AllowedIPS = ${CLOUDFRONT_CIDRS}
 
     # CLOUDFLARE (COMMENTED BY DEFAULT)
-    #AllowedIPS = ${CLOUDFLARE_CIDRS}
+    AllowedIPS = ${CLOUDFLARE_CIDRS}
     EOF
   args:
     executable: /bin/bash
