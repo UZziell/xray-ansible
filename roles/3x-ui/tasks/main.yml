@@ -50,14 +50,6 @@
     password: "{{ dockerhub_password }}"
   ignore_errors: true
 
-- name: Add A record to Cloudflare
-  ansible.builtin.include_role:
-    name: cloudflare
-  vars:
-    records:
-      - cloudflare_domain: "{{ xui_domain }}"
-        cloudflare_subdomain: "{{ xui_subdomain }}"
-
 - name: Ensure x-ui data directories exist
   ansible.builtin.file:
     path: "{{ item }}"
@@ -186,6 +178,14 @@
     services:
       - xui
     restarted: true
+
+- name: Add A record to Cloudflare
+  ansible.builtin.include_role:
+    name: cloudflare
+  vars:
+    records:
+      - cloudflare_domain: "{{ xui_domain }}"
+        cloudflare_subdomain: "{{ xui_subdomain }}"
 
 - name: Debug panel info
   ansible.builtin.debug:
