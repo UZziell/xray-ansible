@@ -20,6 +20,8 @@ services:
       - 1443:1443
       - 8443:8443
       - {{ xui_port }}:{{ xui_port }}
+    entrypoint:
+      ["/bin/sh", "-c", "ln -sf /proc/1/fd/1 /app/access.log; ln -sf /proc/1/fd/2 /app/error.log; /app/x-ui"]
 
 #  nginx:
 #    image: {{ nginx_image }}
