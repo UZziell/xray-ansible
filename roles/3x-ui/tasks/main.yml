@@ -28,6 +28,22 @@
       - 444
     jump: ACCEPT
 
+# - name: Clear any nat table rule with ports 80,443,444
+#   ansible.builtin.iptables:
+#     table: nat
+#     chain: "{{ item }}"
+#     protocol: tcp
+#     match: tcp
+#     jump: RETURN
+#     state: absent
+#     destination_ports:
+#       - 80
+#       - 443
+#       - 444
+#   loop:
+#     - PREROUTING
+#     - POSTROUTING
+
 - name: Log into DockerHub
   community.docker.docker_login:
     username: "{{ dockerhub_username }}"
@@ -72,12 +88,32 @@
     - privkey.pem
   when: get_real_certificate_with_certbot
 
-- name: Copy local x-ui.db to remote
+- name: Copy local x-ui.db(if exists) to remote
   ansible.builtin.copy:
     src: files/x-ui.db
     dest: "{{ xui_data_dir }}/db/"
     mode: "0644"
   when: "{{ lookup('ansible.builtin.fileglob', 'files/x-ui.db') != [] }}"
+
+- name: Copy local certificate(if exists) to remote
+  ansible.builtin.copy:
+    src: files/{{ item }}
+    dest: "{{ xui_data_dir }}/certs/{{ item }}"
+    mode: "0440"
+  when: not get_real_certificate_with_certbot and "{{ lookup('ansible.builtin.fileglob', 'files/fullchain.pem') != [] }}"
+  loop:
+    - fullchain.pem
+    - privkey.pem
+  register: copy_local_cert_result
+
+- debug:
+    msg: "{{ copy_local_cert_result }}"
+  when: copy_local_cert_result.skipped
+
+- debug:
+    msg: "{{ copy_local_cert_result }}"
+  when: copy_local_cert_result.skipped
+  name: debug when changed
 
 - name: Generate fake certificates
   ansible.builtin.include_tasks: generate_selfsigned_certificate.yml
@@ -93,7 +129,7 @@
   ansible.builtin.include_tasks: generate_selfsigned_certificate.yml
   vars:
     selfsigned_certificate_common_name: "{{ xray_subdomain }}.{{ xray_domain }}"
-  when: not get_real_certificate_with_certbot
+  when: not get_real_certificate_with_certbot and copy_local_cert_result.skipped
 
 # fake certificate for panel
 - name: Copy fake panel certificate '{{ xray_subdomain }}.{{ xray_domain }}' to {{ xui_data_dir }}
@@ -105,7 +141,7 @@
   loop:
     - fullchain.pem
     - privkey.pem
-  when: not get_real_certificate_with_certbot
+  when: not get_real_certificate_with_certbot and copy_local_cert_result.skipped
 
 - name: Install project files
   ansible.builtin.template:
