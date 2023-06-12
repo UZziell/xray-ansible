@@ -103,23 +103,12 @@
 #     append: yes
 #     password: "{{ dudepassword|password_hash('sha512') }}"
 
-- name: Copy decoy website to project dir `{{ xui_project_dir }}`
+- name: Copy resolved.conf to '/etc/systemd/resolved.conf'
   ansible.builtin.copy:
     src: files/resolved.conf
     dest: /etc/systemd/resolved.conf
     mode: "0644"
   register: __systemd_resolved_configuration
-
-- name: enable systemd-resolved service and assure it is started
-  systemd:
-    name: systemd-resolved
-    enabled: yes
-    state: >-
-      {{
-        __systemd_resolved_configuration.changed |
-          default(False) |
-          ternary("restarted", "started")
-      }}
 
 - name: Backup original resolv.conf to resolv.conf.original
   ansible.builtin.copy:
@@ -132,6 +121,17 @@
     dest: /etc/resolv.conf
     state: link
     force: true
+
+- name: enable systemd-resolved service and assure it is started
+  systemd:
+    name: systemd-resolved
+    enabled: yes
+    state: >-
+      {{
+        __systemd_resolved_configuration.changed |
+          default(False) |
+          ternary("restarted", "started")
+      }}
 
 - name: Check if reboot is needed
   ansible.builtin.stat:
