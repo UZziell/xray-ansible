@@ -2,7 +2,6 @@ version: '3.9'
 services:
   xui:
     image: {{ xui_image }}
-    # container_name: x-ui
     volumes:
       - {{ xui_data_dir }}/db:{{ xui_db_folder }}
       - {{ xui_data_dir }}/certs:/etc/x-ui/certs
@@ -14,18 +13,14 @@ services:
     ports:
       - 80:80
       - 443:443
-      - 334:334
-      - 2095:2095
-      - 2053:2053
-      - 1443:1443
-      - 8443:8443
+      - 444:444
       - {{ xui_port }}:{{ xui_port }}
+    healthcheck:
+      test: ["CMD", "nc", "-z", "-v", "127.0.0.1", "443"]
+      interval: 20s
+      timeout: 5s
+      retries: 7
+      start_period: 5s
     entrypoint:
-      ["/bin/sh", "-c", "ln -sf /proc/1/fd/1 /app/access.log; ln -sf /proc/1/fd/2 /app/error.log; /app/x-ui"]
-
-#  nginx:
-#    image: {{ nginx_image }}
-#    restart: unless-stopped
-#    volumes:
-#      - {{ xui_project_dir }}/nginx.conf:/etc/nginx/conf.d/default.conf
-#      - {{ xui_project_dir }}/html:/usr/share/nginx/html
+      ["/app/x-ui"]
+      #["/bin/sh", "-c", "ln -sf /proc/1/fd/1 /app/access.log; ln -sf /proc/1/fd/2 /app/error.log; /app/x-ui"]
