@@ -85,6 +85,7 @@
     - { name: net.ipv6.conf.all.disable_ipv6, value: 0 }
     - { name: net.ipv6.conf.default.disable_ipv6, value: 0 }
     - { name: net.ipv6.conf.all.forwarding, value: 1 }
+    - { name: net.netfilter.nf_conntrack_max, value: 65536 }
 
 - name: Disable sshd 'PasswordAuthentication'
   ansible.builtin.lineinfile:
