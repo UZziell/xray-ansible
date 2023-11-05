@@ -17,6 +17,17 @@
       - docker
       - docker-compose
       - pyopenssl
+  register: python_modules_check
+  ignore_errors: true
+
+- name: Install common packages from pkg_list
+  ansible.builtin.include_role:
+    name: packages
+  vars:
+    pkgs_list:
+      - python3-docker
+      - python3-compose
+      - python3-openssl
 
 - name: Allow connections on ports 80,443,444
   ansible.builtin.iptables:

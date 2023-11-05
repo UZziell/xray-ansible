@@ -21,10 +21,6 @@
     upgrade: dist
     force_apt_get: true
 
-- name: Ensure python3 pip module is installed
-  ansible.builtin.include_role:
-    name: pip
-
 - name: Install common packages from pkg_list
   ansible.builtin.include_role:
     name: packages
@@ -54,6 +50,18 @@
       # - python3-systemd
       - open-iscsi
       - nfs-common
+
+# - name: Install python3-full package when "debian"
+#   ansible.builtin.include_role:
+#     name: packages
+#   vars:
+#     pkgs_list:
+#       - python3-full
+#   when: ansible_distribution == "Debian"
+
+- name: Ensure python3 pip module is installed
+  ansible.builtin.include_role:
+    name: pip
 
 - name: Sysctl | basic settings and optimizations
   ansible.posix.sysctl:
@@ -96,13 +104,13 @@
   notify:
     - Restart sshd service
 
-# - name: create the dude
-#   ansible.builtin.user:
-#     name: thedude
-#     shell: /bin/bash
-#     groups: sudo
-#     append: yes
-#     password: "{{ dudepassword|password_hash('sha512') }}"
+- name: create the dude
+  ansible.builtin.user:
+    name: thedude
+    shell: /bin/bash
+    groups: sudo
+    append: yes
+    password: "{{ dudepassword|password_hash('sha512') }}"
 
 - name: Copy resolved.conf to '/etc/systemd/resolved.conf'
   ansible.builtin.copy:
