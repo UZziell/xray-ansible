@@ -26,3 +26,13 @@
   args:
     chdir: /tmp
   when: (pip_version_output is failed) or not pip_version_output.stdout is search('pip ')
+  register: install_pip_check
+  ignore_errors: true
+
+- name: Install pip using apt when script fails
+  ansible.builtin.apt:
+    name: python3-pip
+    state: present
+    update_cache: true
+    cache_valid_time: 3600
+  when: not install_pip_check.skipped and install_pip_check.failed
