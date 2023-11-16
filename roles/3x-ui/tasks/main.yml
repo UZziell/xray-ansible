@@ -17,7 +17,7 @@
       - docker
       - docker-compose
       - pyopenssl
-  register: python_modules_check
+  register: install_python_modules_result
   ignore_errors: true
 
 - name: Install common packages from pkg_list
@@ -26,8 +26,8 @@
   vars:
     pkgs_list:
       - python3-docker
-      - python3-compose
       - python3-openssl
+  when: install_python_modules_result is failed
 
 - name: Allow connections on ports 80,443,444
   ansible.builtin.iptables:
@@ -37,6 +37,7 @@
       - 80
       - 443
       - 444
+      - 8443
     jump: ACCEPT
 
 # - name: Clear any nat table rule with ports 80,443,444
