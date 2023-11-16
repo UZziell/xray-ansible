@@ -17,3 +17,6 @@ roles/xray_nginx/files/var/www/*
 
 # x-ui.db
 roles/3x-ui/files/x-ui.db
+
+# wgcf binary
+wgcf
