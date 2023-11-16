@@ -1,0 +1,78 @@
+---
+- name: Install docker daemon
+  ansible.builtin.include_role:
+    name: geerlingguy.docker
+  vars:
+    docker_install_compose_plugin: false
+
+- name: Ensure python3 pip module is installed
+  ansible.builtin.include_role:
+    name: pip
+
+- name: Ensure docker and docker-compose python modules are installed
+  ansible.builtin.pip:
+    name:
+      - docker
+      - docker-compose
+      - pyopenssl
+  register: install_python_modules_result
+  ignore_errors: true
+
+- name: Install common packages from pkg_list
+  ansible.builtin.include_role:
+    name: packages
+  vars:
+    pkgs_list:
+      - python3-docker
+      - python3-openssl
+  when: install_python_modules_result is failed
+
+- name: Log into DockerHub
+  community.docker.docker_login:
+    username: "{{ dockerhub_username }}"
+    password: "{{ dockerhub_password }}"
+  ignore_errors: true
+
+- name: Ensure netdata directoriy exist
+  ansible.builtin.file:
+    path: "{{ netdata_dir }}"
+    state: directory
+    mode: "0755"
+
+- name: Install docker-compose
+  ansible.builtin.copy:
+    src: files/{{ item }}
+    dest: "{{ netdata_dir }}/{{ item }}"
+    mode: "0664"
+  loop:
+    - docker-compose.yml
+    - netdata.conf
+
+- name: Install .env
+  ansible.builtin.template:
+    src: "{{ item.src }}.j2"
+    dest: "{{ netdata_dir }}/{{ item.src }}"
+    owner: root
+    group: root
+    mode: "{{ item.mode | default('0640') }}"
+  loop:
+    - src: .env
+
+- name: Create a network
+  community.docker.docker_network:
+    name: general-bridge
+    driver: bridge
+
+- name: Ensure compose services are present
+  community.docker.docker_compose:
+    project_src: "{{ netdata_dir }}"
+    pull: true
+    build: true
+    state: present
+
+# - name: Create and start service
+#   community.docker.docker_compose:
+#     project_src: "{{ netdata_dir }}"
+#     services:
+#       - netdata
+#     restarted: true
