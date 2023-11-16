@@ -35,6 +35,7 @@
     timeout: 60
   register: wgcf_latest_release
   when: warp_initial_check.failed
+  ignore_errors: true
 
 - name: Extract wgcf download url
   ansible.builtin.set_fact:
@@ -42,6 +43,7 @@
   vars:
     query: assets[?contains(name,'linux_amd64')].browser_download_url
   when: warp_initial_check.failed
+  ignore_errors: true
 
 - name: Download and install latest wgcf release
   ansible.builtin.get_url:
@@ -50,7 +52,16 @@
     mode: a+x
     force: true
     timeout: 30
+  register: wgcf_download_result
   when: warp_initial_check.failed
+  ignore_errors: true
+
+- name: Copy wgcf binary to /usr/bin/wgcf
+  ansible.builtin.copy:
+    src: files/wgcf
+    dest: /usr/bin/wgcf
+    mode: "0755"
+  when: warp_initial_check.failed and (wgcf_latest_release is failed or wgcf_download_result is failed)
 
 - name: Register with WARP
   ansible.builtin.command:
@@ -120,7 +131,7 @@
     # AWS CloudFront
     AllowedIPS = ${CLOUDFRONT_CIDRS}
 
-    # CLOUDFLARE (COMMENTED BY DEFAULT)
+    # CLOUDFLARE
     AllowedIPS = ${CLOUDFLARE_CIDRS}
     EOF
   args:
