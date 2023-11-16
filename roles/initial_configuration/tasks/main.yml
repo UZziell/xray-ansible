@@ -46,7 +46,7 @@
       # - tor
       # - privoxy
       - iperf3
-      # - fail2ban
+      - fail2ban
       # - python3-systemd
       - open-iscsi
       - nfs-common
@@ -58,6 +58,12 @@
 #     pkgs_list:
 #       - python3-full
 #   when: ansible_distribution == "Debian"
+
+- name: Restart and enable fail2ban service
+  ansible.builtin.systemd:
+    name: fail2ban
+    state: restarted
+    enabled: true
 
 - name: Ensure python3 pip module is installed
   ansible.builtin.include_role:
@@ -132,9 +138,9 @@
     force: true
 
 - name: enable systemd-resolved service and assure it is started
-  systemd:
+  ansible.builtin.systemd:
     name: systemd-resolved
-    enabled: yes
+    enabled: true
     state: >-
       {{
         __systemd_resolved_configuration.changed |
