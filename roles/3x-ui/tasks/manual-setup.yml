@@ -12,6 +12,7 @@
 - name: Get 3x-ui releases from GitHub API
   ansible.builtin.uri:
     url: https://api.github.com/repos/MHSanaei/3x-ui/releases/latest
+    timeout: 60
     return_content: true
   register: xui_get_release_result
 
