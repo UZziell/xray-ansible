@@ -59,6 +59,16 @@
 #       - python3-full
 #   when: ansible_distribution == "Debian"
 
+- name: Disable unattended-upgrades and snapd
+  ansible.builtin.systemd:
+    name: "{{ item }}"
+    state: stopped
+    enabled: false
+  loop:
+    - unattended-upgrades
+    - snapd
+  ignore_errors: true
+
 - name: Restart and enable fail2ban service
   ansible.builtin.systemd:
     name: fail2ban
