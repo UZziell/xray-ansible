@@ -26,7 +26,7 @@
   args:
     chdir: /tmp
   when: (pip_version_output is failed) or not pip_version_output.stdout is search('pip ')
-  register: install_pip_check
+  register: install_pip_result
   ignore_errors: true
 
 - name: Install pip using apt when script fails
@@ -35,4 +35,4 @@
     state: present
     update_cache: true
     cache_valid_time: 3600
-  when: not install_pip_check.skipped and install_pip_check.failed
+  when: install_pip_result is failed
