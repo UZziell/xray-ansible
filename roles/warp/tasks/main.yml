@@ -49,6 +49,7 @@
     dest: /usr/bin/wgcf
     mode: a+x
     force: true
+    timeout: 30
   when: warp_initial_check.failed
 
 - name: Register with WARP
