@@ -22,6 +22,7 @@
     dest: /usr/local/x-ui-linux-{{ arch }}.tar
     mode: 600
     force: true
+    timeout: 30
   vars:
     query: assets[?contains(name,'linux-{{ arch }}')].browser_download_url
 
@@ -31,6 +32,7 @@
     dest: /usr/bin/x-ui
     mode: 666
     force: true
+    timeout: 30
 
 - name: Unarchive downloaded release tarfile
   ansible.builtin.unarchive:
