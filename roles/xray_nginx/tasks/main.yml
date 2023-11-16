@@ -21,6 +21,7 @@
 - name: Get latest iran-hosted-domains releases from GitHub API
   ansible.builtin.uri:
     url: https://api.github.com/repos/bootmortis/iran-hosted-domains/releases/latest
+    timeout: 60
     return_content: true
   register: latest_release
 
@@ -38,6 +39,7 @@
     dest: /usr/local/share/xray/iran.dat
     force: true
     mode: "0644"
+    timeout: 30
 
 - name: Enable bbr
   ansible.posix.sysctl:

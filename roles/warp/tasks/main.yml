@@ -32,6 +32,7 @@
   ansible.builtin.uri:
     url: https://api.github.com/repos/ViRb3/wgcf/releases/latest
     return_content: true
+    timeout: 60
   register: wgcf_latest_release
   when: warp_initial_check.failed
 
