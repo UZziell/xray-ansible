@@ -14,6 +14,7 @@ venv/
 # nginx static websites except one
 roles/xray_nginx/files/var/www/*
 !roles/xray_nginx/files/var/www/html
+roles/boltbot
 
 # x-ui.db
 roles/3x-ui/files/x-ui.db
