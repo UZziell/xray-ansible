@@ -62,6 +62,12 @@
       iptables -t nat -I PREROUTING -p tcp --dport 443 -j DNAT --to-destination 45.61.138.16:443
       iptables -t nat -I POSTROUTING -p tcp --destination 45.61.138.16 --dport 443 -j MASQUERADE
       iptables -t nat -L -n --line-numbers
+      docker compose up --build -d
+      docker compose down
+      export LISTEN_IP=64.190.113.181; export DESTINATION_IP=135.181.87.169; export PORT=445; \
+      iptables -t nat -A PREROUTING -p tcp -d ${LISTEN_IP} --dport ${PORT} -j DNAT --to-destination ${DESTINATION_IP}:${PORT}; \
+      iptables -t nat -A POSTROUTING -p tcp -d ${DESTINATION_IP} --dport ${PORT} -j SNAT --to-source ${LISTEN_IP}
+      docker compose up --build -d
 
 - name: Configure tmux
   ansible.builtin.lineinfile:
