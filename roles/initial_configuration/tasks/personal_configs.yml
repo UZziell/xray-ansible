@@ -68,6 +68,9 @@
       iptables -t nat -A PREROUTING -p tcp -d ${LISTEN_IP} --dport ${PORT} -j DNAT --to-destination ${DESTINATION_IP}:${PORT}; \
       iptables -t nat -A POSTROUTING -p tcp -d ${DESTINATION_IP} --dport ${PORT} -j SNAT --to-source ${LISTEN_IP}
       docker compose up --build -d
+      docker compose down -v
+      docker compose logs --tail 1000 -f
+      docker compose logs --since 24h | grep accepted | grep -Eo 'email: .*$' | sort | uniq -c
 
 - name: Configure tmux
   ansible.builtin.lineinfile:
