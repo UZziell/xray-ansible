@@ -1,0 +1,2 @@
+nat_destinaion_ip: 10.216.0.1
+nat_destinaion_ports: [80, 443, 444, 445, 1443, 8443]
