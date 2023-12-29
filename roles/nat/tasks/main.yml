@@ -1,0 +1,31 @@
+---
+- name: Iptables flush nat
+  ansible.builtin.iptables:
+    table: nat
+    chain: "{{ item }}"
+    flush: true
+  with_items: ["PREROUTING", "POSTROUTING"]
+
+- name: Set NAT rules
+  ansible.builtin.iptables:
+    action: insert
+    table: nat
+    chain: PREROUTING
+    protocol: tcp
+    destination: "{{ ansible_host }}"
+    destination_port: "{{ item }}"
+    jump: DNAT
+    to_destination: "{{ nat_destinaion_ip }}:{{ item }}"
+  loop: "{{ nat_destinaion_ports }}"
+
+- name: Set NAT rules
+  ansible.builtin.iptables:
+    action: insert
+    table: nat
+    chain: POSTROUTING
+    protocol: tcp
+    destination: "{{ nat_destinaion_ip }}"
+    destination_port: "{{ item }}"
+    jump: SNAT
+    to_source: "{{ ansible_host }}"
+  loop: "{{ nat_destinaion_ports }}"
