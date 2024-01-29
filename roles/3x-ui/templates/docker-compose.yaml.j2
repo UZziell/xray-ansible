@@ -13,9 +13,13 @@ services:
     ports:
       - 80:80
       - 443:443
-      - 444:444
+      - 2096:2096
+      - 2053:2053
+      - 2095:2095
       - 1443:1443
-      - 4444:4444
+      - 4433:4433
+      - 8443:8443
+      - 444:444
       - {{ xui_port }}:{{ xui_port }}
     healthcheck:
       test: ["CMD", "nc", "-z", "-v", "127.0.0.1", "443"]
@@ -25,4 +29,3 @@ services:
       start_period: 5s
     entrypoint:
       ["/app/x-ui"]
-      #["/bin/sh", "-c", "ln -sf /proc/1/fd/1 /app/access.log; ln -sf /proc/1/fd/2 /app/error.log; /app/x-ui"]
