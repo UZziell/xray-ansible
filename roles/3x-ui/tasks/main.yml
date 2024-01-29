@@ -27,6 +27,7 @@
     pkgs_list:
       - python3-docker
       - python3-openssl
+      - python3-compose
   when: install_python_modules_result is failed
 
 - name: Allow connections on ports 80,443,444
@@ -99,12 +100,15 @@
     mode: "0644"
   when: "{{ lookup('ansible.builtin.fileglob', 'files/x-ui.db') != [] }}"
 
+# - name: check if local certificate exist
+#   ansible.builtin.fileglob:
+    
 - name: Copy local certificate(if exists) to remote
   ansible.builtin.copy:
     src: files/{{ item }}
     dest: "{{ xui_data_dir }}/certs/{{ item }}"
     mode: "0440"
-  when: not get_real_certificate_with_certbot and "{{ lookup('ansible.builtin.fileglob', 'files/fullchain.pem') != [] }}"
+  when: not get_real_certificate_with_certbot and "{{ 'files/fullchain.pem' | ansible.builtin.fileglob }} != [] "
   loop:
     - fullchain.pem
     - privkey.pem
