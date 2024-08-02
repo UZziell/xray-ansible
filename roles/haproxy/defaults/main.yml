@@ -5,7 +5,7 @@ haproxy_data_dir: "{{ haproxy_project_dir }}/haproxy"
 haproxy_image_tag: 2.6.9-bullseye
 
 haproxy_stats_user: uzer
-haproxy_stats_password: passwd
+haproxy_stats_password: 08123aadfe1ed20d7fd1fb761e95849e
 haproxy_stats_port: 51415
 
 # selfsigned certificate
