@@ -7,7 +7,7 @@ xui_project_dir: /opt/x-ui
 xui_certificate_path: "{{ xui_data_dir }}/certs/fullchain.pem"
 xui_certificate_key_path: "{{ xui_data_dir }}/certs/privkey.pem"
 xui_sudo_username: sudo
-xui_sudo_password: rootami
+xui_sudo_password: 08123aadfe1ed20d7fd1fb761e95849e
 xui_port: 445
 xui_db_folder: /etc/x-ui/db
 
@@ -16,7 +16,7 @@ xui_subdomain: test
 xui_fake_domain: google.com
 
 nginx_image: nginx:1.24.0-bullseye
-xui_image: docker.io/uzziel/triplex:1.3.4-230502
+xui_image: ghcr.io/mhsanaei/3x-ui:latest
 
 # self-signed certificate
 selfsigned_certificate_common_name: speedtest.net

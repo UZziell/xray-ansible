@@ -18,5 +18,5 @@ sqlalchemy_database_url: "sqlite:///{{ marzban_container_data_dir }}/db.sqlite3"
 xray_json: /xray_config.json
 xray_fallback_inbound_tag: TROJAN_FALLBACK_INBOUND # VLESS_FALLBACK
 marzban_sudo_username: admin
-marzban_sudo_password: admin
+marzban_sudo_password: 08123aadfe1ed20d7fd1fb761e95849e
 xray_subscription_url_prefix: https://localhost
