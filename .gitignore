@@ -23,3 +23,7 @@ roles/3x-ui/files/*.db
 wgcf
 
 .secrets.baseline
+
+# installed roles
+roles/geerlingguy.certbot
+roles/geerlingguy.docker
