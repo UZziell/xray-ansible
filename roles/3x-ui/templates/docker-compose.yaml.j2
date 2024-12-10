@@ -1,4 +1,3 @@
-version: '3.9'
 services:
   xui:
     image: {{ xui_image }}
@@ -6,26 +5,30 @@ services:
       - {{ xui_data_dir }}/db:{{ xui_db_folder }}
       - {{ xui_data_dir }}/certs:/etc/x-ui/certs
 
-    restart: unless-stopped
-    # network_mode: host
+    restart: always
+    network_mode: host
     environment:
       - XUI_DB_FOLDER={{ xui_db_folder }}
-    ports:
-      - 80:80
-      - 443:443
-      - 2096:2096
-      - 2053:2053
-      - 2095:2095
-      - 1443:1443
-      - 4433:4433
-      - 8443:8443
-      - 444:444
-      - {{ xui_port }}:{{ xui_port }}
+    # ports:
+    #   - 80:80
+    #   - 443:443
+    #   - 2096:2096
+    #   - 2053:2053
+    #   - 2095:2095
+    #   - 1443:1443
+    #   - 4433:4433
+    #   - 8443:8443
+    #   - 444:444
+    #   - {{ xui_port }}:{{ xui_port }}
     healthcheck:
-      test: ["CMD", "nc", "-z", "-v", "127.0.0.1", "443"]
+      test: ["CMD", "nc", "-z", "-v", "127.0.0.1", "80"]
       interval: 20s
       timeout: 5s
       retries: 7
-      start_period: 5s
+      start_period: 10s
     entrypoint:
       ["/app/x-ui"]
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "100m"
