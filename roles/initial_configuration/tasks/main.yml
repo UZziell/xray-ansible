@@ -20,6 +20,7 @@
     records:
       - cloudflare_domain: "{{ xui_domain }}"
         cloudflare_subdomain: "{{ xui_subdomain }}"
+  when: add_cloudflare_dns_record
 
 - name: Add A record '{{ xui_subdomain }}.{{ cloudflare_scrambled_postfix }}.{{ xui_domain }}:{{ ansible_host }}' to Cloudflare
   ansible.builtin.include_role:
@@ -28,7 +29,7 @@
     records:
       - cloudflare_domain: "{{ xui_domain }}"
         cloudflare_subdomain: "{{ xui_subdomain }}.{{ cloudflare_scrambled_postfix }}"
-  when: cloudflare_scrambled_postfix is defined
+  when: cloudflare_scrambled_postfix is defined and add_cloudflare_dns_record
 
 - name: Update apt repo and cache
   ansible.builtin.apt:
@@ -146,7 +147,7 @@
     shell: /bin/bash
     groups: sudo
     append: yes
-    password: "{{ dudepassword|password_hash('sha512') }}"
+    password: "{{ dudepassword }}"
 
 - name: Copy resolved.conf to '/etc/systemd/resolved.conf'
   ansible.builtin.copy:
