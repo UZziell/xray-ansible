@@ -1,7 +1,7 @@
 ---
 - name: Ensure python3-distutils package is installed
   ansible.builtin.apt:
-    name: python3-distutils
+    name: python3-distutils-extra
     state: present
     update_cache: true
     cache_valid_time: 3600
