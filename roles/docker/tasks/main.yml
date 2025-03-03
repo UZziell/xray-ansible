@@ -1,0 +1,28 @@
+- name: Install docker daemon
+  ansible.builtin.include_role:
+    name: geerlingguy.docker
+  vars:
+    docker_install_compose_plugin: false
+
+- name: Ensure python3 pip module is installed
+  ansible.builtin.include_role:
+    name: pip
+
+- name: Ensure docker and docker-compose python modules are installed
+  ansible.builtin.pip:
+    name:
+      - docker
+      - docker-compose
+      - pyopenssl
+  register: install_python_modules_result
+  ignore_errors: true
+
+- name: Install common packages from pkg_list
+  ansible.builtin.include_role:
+    name: packages
+  vars:
+    pkgs_list:
+      - python3-docker
+      - python3-openssl
+      - python3-compose
+  when: install_python_modules_result is failed
