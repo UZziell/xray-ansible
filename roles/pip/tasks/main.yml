@@ -20,6 +20,7 @@
     mode: "0644"
     timeout: 30
   when: (pip_version_output is failed) or not pip_version_output.stdout is search('pip ')
+  ignore_errors: true
 
 # Install pip if it's not already installed,
 - name: Install pip
