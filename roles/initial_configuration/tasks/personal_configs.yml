@@ -94,12 +94,14 @@
       owner: root
       group: root
       mode: "0644"
+    register: fail2ban_config_install_result
 
   - name: Restart and enable fail2ban service
     ansible.builtin.systemd:
       name: fail2ban
       state: restarted
       enabled: true
+    when: fail2ban_config_install_result.chaned
 
 - name: Sysctl | basic settings and optimizations
   ansible.posix.sysctl:
