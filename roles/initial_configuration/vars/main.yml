@@ -23,4 +23,5 @@ private_ubuntu_security_repo_url:
 default_ubuntu_apt_archive_key:
 private_debian_repo_url:
 private_debian_security_repo_url:
-custom_docker_repo_url:
+custom_docker_repo_url: https://download.docker.com/linux
+

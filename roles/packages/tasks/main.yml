@@ -33,7 +33,7 @@
 #   ansible.builtin.systemd:
 #     name: "{{ item }}"
 #     state: stopped
-#     enabled: no
+#     enabled: false
 #   loop:
 #     - privoxy
 #     - tor

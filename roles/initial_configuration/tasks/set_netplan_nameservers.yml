@@ -3,7 +3,7 @@
     path: "{{ netplan_config_path }}"
     regexp: '(^\s{12}nameservers:\n(?:\s{16}.*\n)+)'
     replace: "            {{ netplan_nameservers_block }}"
-    backup: yes
+    backup: true
   register: update_nameserver_result
   when:
     - ansible_facts['distribution'] == "Ubuntu"

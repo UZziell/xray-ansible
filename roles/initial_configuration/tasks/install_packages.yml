@@ -30,7 +30,7 @@
 - name: Ensure EDITOR and VISUAL environment variables are set to vim system-wide
   lineinfile:
     path: /etc/profile.d/editor.sh
-    create: yes
+    create: true
     mode: '0644'
     line: 'export EDITOR=vim; export VISUAL=vim'
 
@@ -49,8 +49,8 @@
     path: /etc/apt/apt.conf.d/10periodic
     regexp: '^APT::Periodic::AutocleanInterval'
     line: 'APT::Periodic::AutocleanInterval "7";'
-    create: yes
-    backup: yes
+    create: true
+    backup: true
   when:
     - ansible_facts.distribution == 'Ubuntu'
 
