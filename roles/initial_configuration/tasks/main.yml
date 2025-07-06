@@ -19,10 +19,11 @@
     force_apt_get: true
     cache_valid_time: 3600
 
-- name: Apt dist-upgrade
+- name: Apt safe upgrade
   ansible.builtin.apt:
-    upgrade: dist
-    force_apt_get: true
+    upgrade: safe
+    # force_apt_get: true
+  when: do_apt_upgrade
 
 - name: Install common packages from pkg_list
   ansible.builtin.include_role:
@@ -38,21 +39,22 @@
       - tmux
       - tcpdump
       - htop
-      - speedtest-cli
       - nload
       - vnstat
       - netcat-openbsd
       - sudo
       - cron
+      - iperf3
+      - fail2ban
+      - sysstat
       # - nginx
       # - obfs4proxy
       # - tor
       # - privoxy
-      - iperf3
-      - fail2ban
+      # - speedtest-cli
       # - python3-systemd
-      - open-iscsi
-      - nfs-common
+      # - open-iscsi
+      # - nfs-common
 
 # - name: Install python3-full package when "debian"
 #   ansible.builtin.include_role:
@@ -62,25 +64,30 @@
 #       - python3-full
 #   when: ansible_distribution == "Debian"
 
-- name: Disable unattended-upgrades and snapd
+- name: Disable snapd systemd unit
   ansible.builtin.systemd:
     name: "{{ item }}"
     state: stopped
     enabled: false
   loop:
-    - unattended-upgrades
+    # - unattended-upgrades
     - snapd
   ignore_errors: true
 
-- name: Restart and enable fail2ban service
-  ansible.builtin.systemd:
-    name: fail2ban
-    state: restarted
-    enabled: true
+- block:
+  - name: Install fail2ban sshd jail config
+    ansible.builtin.template:
+      src: fail2ban_sshd.conf.j2
+      dest: /etc/fail2ban/jail.d/fail2ban_sshd.conf
+      owner: root
+      group: root
+      mode: "0644"
 
-- name: Ensure python3 pip module is installed
-  ansible.builtin.include_role:
-    name: pip
+  - name: Restart and enable fail2ban service
+    ansible.builtin.systemd:
+      name: fail2ban
+      state: restarted
+      enabled: true
 
 - name: Sysctl | basic settings and optimizations
   ansible.posix.sysctl:
@@ -123,18 +130,20 @@
   notify:
     - Restart sshd service
 
-- name: create the dude
+- name: create the default user
   ansible.builtin.user:
-    name: thedude
+    name: "{{ default_user_username }}"
     shell: /bin/bash
     groups: sudo
     append: yes
-    password: "{{ dudepassword }}"
+    password: "{{ default_user_password }}"
 
-- name: Copy resolved.conf to '/etc/systemd/resolved.conf'
-  ansible.builtin.copy:
-    src: files/resolved.conf
+- name: Install custom resolved.conf to '/etc/systemd/resolved.conf'
+  ansible.builtin.template:
+    src: resolved.conf.j2
     dest: /etc/systemd/resolved.conf
+    owner: root
+    group: root
     mode: "0644"
   register: __systemd_resolved_configuration
 
@@ -160,6 +169,10 @@
           default(False) |
           ternary("restarted", "started")
       }}
+
+- name: Ensure python3 pip module is installed
+  ansible.builtin.include_role:
+    name: pip
 
 - name: Check if reboot is needed
   ansible.builtin.stat:

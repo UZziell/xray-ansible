@@ -57,16 +57,12 @@
       docker compose --project-directory /opt/x-ui/ exec -it xui /bin/sh
       docker compose --project-directory /opt/x-ui/ exec xui /app/bin/xray-linux-amd64 tls ping google.com
       echo 1 >/proc/sys/net/ipv4/ip_forward
-      iptables -t nat -A PREROUTING -p tcp -d LISTEN-IP --dport LISTEN-PORT -j DNAT --to-destination DESTINATION-IP:DESTINATION-PORT
-      iptables -t nat -A POSTROUTING -p tcp -d DESTINATION-IP --dport DESTINATION-PORT -j SNAT --to-source LISTEN-IP
-      iptables -t nat -I PREROUTING -p tcp --dport 443 -j DNAT --to-destination 45.61.138.16:443
-      iptables -t nat -I POSTROUTING -p tcp --destination 45.61.138.16 --dport 443 -j MASQUERADE
       iptables -t nat -L -n --line-numbers
       docker compose up --build -d
       docker compose down
-      export LISTEN_IP=64.190.113.181; export DESTINATION_IP=135.181.87.169; export PORT=445; \
-      iptables -t nat -A PREROUTING -p tcp -d ${LISTEN_IP} --dport ${PORT} -j DNAT --to-destination ${DESTINATION_IP}:${PORT}; \
-      iptables -t nat -A POSTROUTING -p tcp -d ${DESTINATION_IP} --dport ${PORT} -j SNAT --to-source ${LISTEN_IP}
+      export DESTINATION_IP=135.181.87.169; export PORT=443; \
+      iptables -t nat -I PREROUTING -p tcp --dport "${PORT}" -j DNAT --to-destination "${DESTINATION_IP}:${PORT}"; \
+      iptables -t nat -I POSTROUTING -p tcp --destination "${DESTINATION_IP}" --dport "${PORT}" -j MASQUERADE
       docker compose up --build -d
       docker compose down -v
       docker compose logs --tail 1000 -f
