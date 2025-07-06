@@ -1,7 +1,13 @@
 
 [sshd]
 enabled = true
+
+{% if change_ssh_port | bool %}
+port = {{ alternative_ssh_port }}
+{% else %}
 port = ssh
+{% endif %}
+
 filter = sshd
 logpath = /var/log/auth.log
 maxretry = 6
