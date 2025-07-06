@@ -1,0 +1,41 @@
+- name: Check if user exists
+  ansible.builtin.command: getent passwd {{ item.user }}
+  register: user_check_result
+  ignore_errors: true
+  changed_when: false
+
+- name: Ensure user exists (change password if forced)
+  become: true
+  ansible.builtin.user:
+    name: "{{ item.user }}"
+    groups: "{{ item.groups }}"
+    shell: /bin/bash
+    password: "{{ (initial_password_salt ~ '@' ~ item.user) | hash('sha256') | password_hash('sha512') }}"
+    password_expire_warn: 62
+  when: user_check_result.failed == true
+    or force_change_users_password
+
+- name: Determine authorized‐key environment suffix
+  ansible.builtin.set_fact:
+    auth_key_env: >-
+      {{ 'dev' 
+         if is_dev  | default(false) 
+         else 'production' }}
+
+- name: Check if SSH public key exists for user
+  ansible.builtin.stat:
+    path: "{{ role_path }}/files/public_keys/{{ item.user }}_{{ auth_key_env }}.pub.key"
+  register: ssh_key_file
+  delegate_to: localhost
+  become: false
+  run_once: true
+
+- name: Ensure correct authorized key is installed for each user
+  ansible.posix.authorized_key:
+    user: "{{ item.user }}"
+    key: "{{ lookup('file', 'public_keys/' + item.user + '_' + auth_key_env + '.pub.key') }}"
+    state: present
+    comment: "{{ item.user }}@{{ auth_key_env }}-ManagedByAnsible"
+  when:
+    - auth_key_env is defined
+    - ssh_key_file.stat.exists

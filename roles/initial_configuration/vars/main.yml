@@ -1,0 +1,26 @@
+netplan_config_path: /etc/netplan/50-cloud-init.yaml
+
+netplan_nameservers_block: |
+  nameservers:
+                  addresses:
+                  - 8.8.8.8
+                  - 1.1.1.1
+                  search: []
+
+custom_etc_hosts_entries: ""
+
+initial_groups:
+  - maintainers
+
+initial_users:
+  - user: uzziel
+    groups: maintainers,docker,sudo
+
+private_repo_filename: private-repo
+private_repo_origin:
+private_ubuntu_repo_url:
+private_ubuntu_security_repo_url:
+default_ubuntu_apt_archive_key:
+private_debian_repo_url:
+private_debian_security_repo_url:
+custom_docker_repo_url:

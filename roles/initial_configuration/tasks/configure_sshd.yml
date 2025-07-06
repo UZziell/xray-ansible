@@ -1,0 +1,12 @@
+- name: "Ensure sshd PasswordAuthentication is disabled"
+  ansible.builtin.lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: (?i)^(#|)\s*PasswordAuthentication
+    line: 'PasswordAuthentication no'
+    validate: 'sshd -t -f %s'
+  notify: Restart sshd service
+  when: disable_ssh_password_authentication
+
+# - name: Change SSH Port
+#   ansible.builtin.include_tasks: change_ssh_port.yml
+#   when: change_ssh_port

@@ -1,0 +1,21 @@
+- name: Ensure initial gruops
+  become: true
+  group:
+    name: "{{ item }}"
+    state: present
+  loop: "{{ initial_groups }}"
+
+- name: Ensure users
+  ansible.builtin.include_tasks: create_users.yml
+  loop: "{{ initial_users }}"
+
+- name: Set hostname
+  ansible.builtin.hostname:
+    name: "{{ inventory_hostname }}-{{ ansible_host | replace('.', '-') }}"
+
+- name: Ensure timezone is Set
+  community.general.timezone:
+    name: "{{ timezone }}"
+
+- name: Ensure root user is configured and password is set
+  ansible.builtin.include_tasks: configure_root_user.yml

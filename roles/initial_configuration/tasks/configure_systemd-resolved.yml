@@ -1,0 +1,33 @@
+- name: Setup DNS
+  block:
+    - name: Install custom resolved.conf to '/etc/systemd/resolved.conf'
+      ansible.builtin.template:
+        src: resolved.conf.j2
+        dest: /etc/systemd/resolved.conf
+        owner: root
+        group: root
+        mode: "0644"
+      register: __systemd_resolved_configuration
+
+    - name: Backup original resolv.conf to resolv.conf.original
+      ansible.builtin.copy:
+        src: /etc/resolv.conf
+        dest: /etc/resolv.conf.original
+
+    - name: Link /etc/resolv.conf to stub-resolver
+      ansible.builtin.file:
+        src: /run/systemd/resolve/stub-resolv.conf
+        dest: /etc/resolv.conf
+        state: link
+        force: true
+
+    - name: enable systemd-resolved service and assure it is started
+      ansible.builtin.systemd:
+        name: systemd-resolved
+        enabled: true
+        state: >-
+          {{
+            __systemd_resolved_configuration.changed |
+              default(False) |
+              ternary("restarted", "started")
+          }}

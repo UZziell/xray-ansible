@@ -1,0 +1,38 @@
+- name: Ensure root password never expires
+  ansible.builtin.user:
+    name: root
+    password_lock: false
+    expires: -1
+    password_expire_max: 99999
+    password_expire_min: 0
+  become: true
+
+- name: Determine the correct root password for this environment
+  set_fact:
+    root_password: >-
+      {{ root_password_dev if (is_dev | default(false)) 
+       else root_password_production }}
+  when: force_change_root_password
+
+- name: Ensure root’s password is set
+  become: true
+  ansible.builtin.user:
+    name: root
+    shell: /bin/bash
+    password: "{{ root_password | password_hash('sha512') }}"
+  when: force_change_root_password
+
+- name: Determine authorized‐key environment suffix
+  ansible.builtin.set_fact:
+    auth_key_env: >-
+      {{ 'dev' 
+         if is_dev  | default(false) 
+         else 'production' }}
+
+- name: Ensure correct authorized key is installed for root
+  ansible.posix.authorized_key:
+    user: root
+    key: "{{ lookup('file', 'public_keys/' + 'root' + '_' + auth_key_env + '.pub.key') }}"
+    state: present
+    comment: "root@{{ auth_key_env }}-ManagedByAnsible"
+  when: auth_key_env is defined

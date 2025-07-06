@@ -1,0 +1,79 @@
+- name: apt update
+  ansible.builtin.apt:
+    update_cache: true
+    force_apt_get: true
+    cache_valid_time: 3600
+  changed_when: false
+
+- name: Apt upgrade (safe)
+  ansible.builtin.apt:
+    upgrade: "safe"
+    force_apt_get: true
+
+- name: Apt dist-upgrade (potentially unsafe)
+  ansible.builtin.apt:
+    upgrade: "safe"
+    force_apt_get: true
+  when: force_dist_upgrade
+
+- name: Install common packages from pkg_list
+  ansible.builtin.include_role:
+    name: packages
+  vars:
+    pkgs_list: "{{ initial_configuration_pkg_list }}"
+
+- name: Ensure vim is the default editor using update-alternatives
+  ansible.builtin.alternatives:
+    name: editor
+    path: /usr/bin/vim.basic
+
+- name: Ensure EDITOR and VISUAL environment variables are set to vim system-wide
+  lineinfile:
+    path: /etc/profile.d/editor.sh
+    create: yes
+    mode: '0644'
+    line: 'export EDITOR=vim; export VISUAL=vim'
+
+- name: Disable snapd
+  ansible.builtin.systemd:
+    name: "{{ item }}"
+    state: stopped
+    enabled: false
+  loop:
+    - snapd
+    # - unattended-upgrades
+  ignore_errors: true
+
+- name: Ensure APT autoclean runs weekly
+  ansible.builtin.lineinfile:
+    path: /etc/apt/apt.conf.d/10periodic
+    regexp: '^APT::Periodic::AutocleanInterval'
+    line: 'APT::Periodic::AutocleanInterval "7";'
+    create: yes
+    backup: yes
+  when:
+    - ansible_facts.distribution == 'Ubuntu'
+
+# - name: Restart and enable fail2ban service
+#   ansible.builtin.systemd:
+#     name: fail2ban
+#     state: restarted
+#     enabled: true
+
+- name: Check if reboot is needed
+  ansible.builtin.stat:
+    path: /var/run/reboot-required
+    get_checksum: false
+  register: reboot_required_file
+
+- name: Reboot the box
+  ansible.builtin.reboot:
+    msg: Reboot initiated by Ansible for kernel updates
+    connect_timeout: 5
+    reboot_timeout: 300
+    pre_reboot_delay: 0
+    post_reboot_delay: 30
+    test_command: uptime
+  when:
+    - not skip_reboot
+    - reboot_required_file.stat.exists

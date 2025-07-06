@@ -1,191 +1,40 @@
 ---
-# - name: Change SSH Port
-#   ansible.builtin.include_tasks: change_ssh_port.yml
+# - name: Set netplan custom nameservers
+#   ansible.builtin.include_tasks: set_netplan_nameservers.yml
+#   when: set_netplan_nameservers
+
+- name: Add custom host entries to /etc/hosts
+  ansible.builtin.blockinfile:
+    path: /etc/hosts
+    block: "{{ custom_etc_hosts_entries }}"
+    marker: "# {mark} ANSIBLE MANAGED BLOCK - custom hosts"
+  when: add_custom_etc_hosts_entries
 
 - name: Apply personal configs
   ansible.builtin.include_tasks: personal_configs.yml
+  when: apply_personal_configs
 
-- name: Set hostname
-  ansible.builtin.hostname:
-    name: "{{ inventory_hostname }}-{{ ansible_host | replace('.', '-') }}"
+- name: Set private repo for apt sources.list
+  ansible.builtin.include_tasks: private_apt_sources_list.yml
+  when:
+    - private_apt_sources_list
+    - ansible_os_family == 'Debian'
 
-- name: Set timezone to UTC
-  community.general.timezone:
-    name: UTC
-
-- name: Update apt repo and cache
-  ansible.builtin.apt:
-    update_cache: true
-    force_apt_get: true
-    cache_valid_time: 3600
-
-- name: Apt safe upgrade
-  ansible.builtin.apt:
-    upgrade: safe
-    # force_apt_get: true
-  when: do_apt_upgrade
-
-- name: Install common packages from pkg_list
+- name: Install docker
   ansible.builtin.include_role:
-    name: packages
+    name: docker
   vars:
-    pkgs_list:
-      - curl
-      - wget
-      - vim
-      - gnupg
-      - iptables
-      - iptables-persistent
-      - tmux
-      - tcpdump
-      - htop
-      - nload
-      - vnstat
-      - netcat-openbsd
-      - sudo
-      - cron
-      - iperf3
-      - fail2ban
-      - sysstat
-      # - nginx
-      # - obfs4proxy
-      # - tor
-      # - privoxy
-      # - speedtest-cli
-      # - python3-systemd
-      # - open-iscsi
-      # - nfs-common
+    docker_repo_url: "{{ custom_docker_repo_url }}"
+  when: install_docker
 
-# - name: Install python3-full package when "debian"
-#   ansible.builtin.include_role:
-#     name: packages
-#   vars:
-#     pkgs_list:
-#       - python3-full
-#   when: ansible_distribution == "Debian"
+- name: Install packages
+  ansible.builtin.include_tasks: install_packages.yml
+  when: install_initial_packages
 
-- name: Disable snapd systemd unit
-  ansible.builtin.systemd:
-    name: "{{ item }}"
-    state: stopped
-    enabled: false
-  loop:
-    # - unattended-upgrades
-    - snapd
-  ignore_errors: true
+- name: Add users and groups. Set hostname and timezone
+  ansible.builtin.include_tasks: users_and_groups.yml
+  when: create_users_and_groups
 
-- block:
-  - name: Install fail2ban sshd jail config
-    ansible.builtin.template:
-      src: fail2ban_sshd.conf.j2
-      dest: /etc/fail2ban/jail.d/fail2ban_sshd.conf
-      owner: root
-      group: root
-      mode: "0644"
-
-  - name: Restart and enable fail2ban service
-    ansible.builtin.systemd:
-      name: fail2ban
-      state: restarted
-      enabled: true
-
-- name: Sysctl | basic settings and optimizations
-  ansible.posix.sysctl:
-    name: "{{ item.name }}"
-    value: "{{ item.value }}"
-    state: present
-    sysctl_set: true
-    ignoreerrors: true
-  ignore_errors: true
-  loop:
-    - { name: net.core.default_qdisc, value: fq }
-    - { name: net.ipv4.tcp_congestion_control, value: bbr }
-    # Optimize Swap Settings
-    - { name: vm.swappiness, value: 10 }
-    - { name: vm.vfs_cache_pressure, value: 50 }
-    # Optimize Network Settings
-    - { name: fs.file-max, value: 1000000 }
-    - { name: net.core.rmem_default, value: 1048576 }
-    - { name: net.core.rmem_max, value: 2097152 }
-    - { name: net.core.wmem_default, value: 1048576 }
-    - { name: net.core.wmem_max, value: 2097152 }
-    - { name: net.core.netdev_max_backlog, value: 16384 }
-    - { name: net.core.somaxconn, value: 32768 }
-    - { name: net.ipv4.tcp_fastopen, value: 3 }
-    - { name: net.ipv4.tcp_mtu_probing, value: 1 }
-    - { name: net.ipv4.tcp_retries2, value: 8 }
-    - { name: net.ipv4.tcp_slow_start_after_idle, value: 0 }
-    - { name: net.ipv4.ip_forward, value: 1 }
-    - { name: net.ipv6.conf.all.disable_ipv6, value: 0 }
-    - { name: net.ipv6.conf.default.disable_ipv6, value: 0 }
-    - { name: net.ipv6.conf.all.forwarding, value: 1 }
-    - { name: net.netfilter.nf_conntrack_max, value: 65536 }
-
-- name: Disable sshd 'PasswordAuthentication'
-  ansible.builtin.lineinfile:
-    path: /etc/ssh/sshd_config
-    regexp: ^#?PasswordAuthentication
-    line: PasswordAuthentication no
-    validate: /usr/sbin/sshd -t -f %s
-  notify:
-    - Restart sshd service
-
-- name: create the default user
-  ansible.builtin.user:
-    name: "{{ default_user_username }}"
-    shell: /bin/bash
-    groups: sudo
-    append: yes
-    password: "{{ default_user_password }}"
-
-- name: Install custom resolved.conf to '/etc/systemd/resolved.conf'
-  ansible.builtin.template:
-    src: resolved.conf.j2
-    dest: /etc/systemd/resolved.conf
-    owner: root
-    group: root
-    mode: "0644"
-  register: __systemd_resolved_configuration
-
-- name: Backup original resolv.conf to resolv.conf.original
-  ansible.builtin.copy:
-    src: /etc/resolv.conf
-    dest: /etc/resolv.conf.original
-
-- name: Link /etc/resolv.conf to stub-resolver
-  ansible.builtin.file:
-    src: /run/systemd/resolve/stub-resolv.conf
-    dest: /etc/resolv.conf
-    state: link
-    force: true
-
-- name: enable systemd-resolved service and assure it is started
-  ansible.builtin.systemd:
-    name: systemd-resolved
-    enabled: true
-    state: >-
-      {{
-        __systemd_resolved_configuration.changed |
-          default(False) |
-          ternary("restarted", "started")
-      }}
-
-- name: Ensure python3 pip module is installed
-  ansible.builtin.include_role:
-    name: pip
-
-- name: Check if reboot is needed
-  ansible.builtin.stat:
-    path: /var/run/reboot-required
-    get_checksum: false
-  register: reboot_required_file
-
-- name: Reboot the box
-  ansible.builtin.reboot:
-    msg: Reboot initiated by Ansible for kernel updates
-    connect_timeout: 5
-    reboot_timeout: 300
-    pre_reboot_delay: 0
-    post_reboot_delay: 30
-    test_command: uptime
-  when: reboot_required_file.stat.exists
+- name: Configure sshd
+  ansible.builtin.include_tasks: configure_sshd.yml
+  when: configure_sshd

@@ -1,0 +1,57 @@
+- name: Add private APT proxy repository (Ubuntu main)
+  ansible.builtin.apt_repository:
+    repo: "deb [arch=amd64 signed-by={{ default_ubuntu_apt_archive_key }}] {{ private_ubuntu_repo_url }} {{ item }} main restricted universe multiverse"
+    state: present
+    filename: "{{ private_repo_filename }}"
+    update_cache: false
+  loop:
+    - "{{ ansible_distribution_release }}"
+    - "{{ ansible_distribution_release }}-updates"
+    - "{{ ansible_distribution_release }}-backports"
+  when: 
+    - ansible_distribution == 'Ubuntu'
+
+- name: Add private APT proxy repository (Ubuntu Security)
+  ansible.builtin.apt_repository:
+    repo: "deb [arch=amd64 signed-by={{ default_ubuntu_apt_archive_key }}] {{ private_ubuntu_security_repo_url }} {{ ansible_distribution_release }}-security main restricted universe multiverse"
+    state: present
+    filename: "{{ private_repo_filename }}"
+    update_cache: false
+  when: 
+    - ansible_distribution == 'Ubuntu'
+
+- name: Add private APT proxy repository (Debian main)
+  ansible.builtin.apt_repository:
+    repo: "deb {{ private_debian_repo_url }} {{ item }} main contrib"
+    state: present
+    filename: "{{ private_repo_filename }}"
+    update_cache: false
+  loop:
+    - "{{ ansible_distribution_release }}"
+    - "{{ ansible_distribution_release }}-updates"
+  when: 
+    - ansible_distribution == 'Debian'
+
+- name: Add private APT proxy repository (Debian Security)
+  ansible.builtin.apt_repository:
+    repo: "deb {{ private_debian_security_repo_url }} {{ ansible_distribution_release }}-security main contrib"
+    state: present
+    filename: "{{ private_repo_filename }}"
+    update_cache: false
+  when: 
+    - ansible_distribution == 'Debian'
+
+- name: Create APT preferences file to prioritize private repo
+  ansible.builtin.copy:
+    dest: /etc/apt/preferences.d/{{ private_repo_filename }}.pref
+    content: |
+      Package: *
+      Pin: origin {{ private_repo_origin }}
+      Pin-Priority: 1001
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: Update APT package cache
+  ansible.builtin.apt:
+    update_cache: yes

@@ -38,11 +38,8 @@
       vnstat --days
       vnstat --months
       ss --no-header  --tcp -4 -o state established '( sport = :https )' | awk '{ print $4 }' | sort -n | uniq -c | sort -n
-      journalctl -u xray --since -24h | awk '{print $8}' | grep -Eo '[0-9]{1,3}(\.[0-9]{1,3}){3}' | sort -u | wc -l
-      journalctl -u xray --since -24h | awk '{print $8}' | grep -Eo '[0-9]{1,3}(\.[0-9]{1,3}){3}' | sort -u | less
       iperf3 -s
       rm -f /dev/shm/nginx*.sock || nginx -t && systemctl restart nginx
-      xray run -test -c /usr/local/etc/xray/config.json  && sreset xray
       du -csh /{etc,home,opt,root,srv,var/www}  | sort -h
       tar -cvf /tmp/$(date +%F-%H%M)--$(uname -n)--$(uname -r).tar /{etc,home,opt,root,srv,var/www,var/spool} > /tmp/tar.out 2> /tmp/tar.erorrs
       journalctl -u xray --since -48h | grep accepted | awk '{print $8}' | grep -Po '(\d\d?\d?\.){3}\d\d?\d?'  | sort | uniq -d -c | sort -h | wc -l
@@ -57,6 +54,10 @@
       docker compose --project-directory /opt/x-ui/ exec -it xui /bin/sh
       docker compose --project-directory /opt/x-ui/ exec xui /app/bin/xray-linux-amd64 tls ping google.com
       echo 1 >/proc/sys/net/ipv4/ip_forward
+      iptables -t nat -A PREROUTING -p tcp -d LISTEN-IP --dport LISTEN-PORT -j DNAT --to-destination DESTINATION-IP:DESTINATION-PORT
+      iptables -t nat -A POSTROUTING -p tcp -d DESTINATION-IP --dport DESTINATION-PORT -j SNAT --to-source LISTEN-IP
+      iptables -t nat -I PREROUTING -p tcp --dport 443 -j DNAT --to-destination 45.61.138.16:443
+      iptables -t nat -I POSTROUTING -p tcp --destination 45.61.138.16 --dport 443 -j MASQUERADE
       iptables -t nat -L -n --line-numbers
       docker compose up --build -d
       docker compose down
@@ -65,8 +66,8 @@
       iptables -t nat -I POSTROUTING -p tcp --destination "${DESTINATION_IP}" --dport "${PORT}" -j MASQUERADE
       docker compose up --build -d
       docker compose down -v
-      docker compose logs --tail 1000 -f
-      docker compose logs --since 24h | grep accepted | grep -Eo 'email: .*$' | sort | uniq -c
+      docker compose logs --tail 99 -f
+      docker compose logs --since 10m -f
 
 - name: Configure tmux
   ansible.builtin.lineinfile:
@@ -81,3 +82,50 @@
     line: set paste
     create: true
     mode: "0600"
+
+- block:
+  - name: Install fail2ban sshd jail config
+    ansible.builtin.template:
+      src: fail2ban_sshd.conf.j2
+      dest: /etc/fail2ban/jail.d/fail2ban_sshd.conf
+      owner: root
+      group: root
+      mode: "0644"
+
+  - name: Restart and enable fail2ban service
+    ansible.builtin.systemd:
+      name: fail2ban
+      state: restarted
+      enabled: true
+
+- name: Sysctl | basic settings and optimizations
+  ansible.posix.sysctl:
+    name: "{{ item.name }}"
+    value: "{{ item.value }}"
+    state: present
+    sysctl_set: true
+    ignoreerrors: true
+  ignore_errors: true
+  loop:
+    - { name: net.core.default_qdisc, value: fq }
+    - { name: net.ipv4.tcp_congestion_control, value: bbr }
+    # Optimize Swap Settings
+    - { name: vm.swappiness, value: 10 }
+    - { name: vm.vfs_cache_pressure, value: 50 }
+    # Optimize Network Settings
+    # - { name: fs.file-max, value: 1000000 }
+    # - { name: net.core.rmem_default, value: 1048576 }
+    # - { name: net.core.rmem_max, value: 2097152 }
+    # - { name: net.core.wmem_default, value: 1048576 }
+    # - { name: net.core.wmem_max, value: 2097152 }
+    # - { name: net.core.netdev_max_backlog, value: 16384 }
+    # - { name: net.core.somaxconn, value: 32768 }
+    - { name: net.ipv4.tcp_fastopen, value: 3 }
+    - { name: net.ipv4.tcp_mtu_probing, value: 1 }
+    # - { name: net.ipv4.tcp_retries2, value: 8 }
+    - { name: net.ipv4.tcp_slow_start_after_idle, value: 0 }
+    - { name: net.ipv4.ip_forward, value: 1 }
+    - { name: net.ipv6.conf.all.disable_ipv6, value: 0 }
+    - { name: net.ipv6.conf.default.disable_ipv6, value: 0 }
+    - { name: net.ipv6.conf.all.forwarding, value: 1 }
+    - { name: net.netfilter.nf_conntrack_max, value: 65536 }

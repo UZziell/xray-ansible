@@ -1,0 +1,30 @@
+- name: Update nameservers in netplan configuration file
+  ansible.builtin.replace:
+    path: "{{ netplan_config_path }}"
+    regexp: '(^\s{12}nameservers:\n(?:\s{16}.*\n)+)'
+    replace: "            {{ netplan_nameservers_block }}"
+    backup: yes
+  register: update_nameserver_result
+  when:
+    - ansible_facts['distribution'] == "Ubuntu"
+    - ansible_facts['distribution_version'] == "24.04"
+
+- name: Check netplan config validity (netplan try)
+  ansible.builtin.command: netplan try --timeout 10
+  register: netplan_try_result
+  ignore_errors: true
+  changed_when: false
+  async: 45
+  when:
+    - update_nameserver_result.changed
+
+- name: Fail if netplan configuration is invalid
+  ansible.builtin.fail:
+    msg: "Netplan configuration validation failed! Not applying changes."
+  when: (netplan_try_result.rc | default(0) ) != 0
+
+- name: Apply netplan only if try succeeds
+  ansible.builtin.command: netplan apply
+  async: 45
+  when:
+    - netplan_try_result.rc == 0
