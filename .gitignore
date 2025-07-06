@@ -1,5 +1,6 @@
 .vscode
-venv/
+venv
+.venv
 
 # playbooks, inventories and hosts
 **/inventory.y*ml
@@ -10,6 +11,7 @@ venv/
 
 # pem files
 **/**.pem
+**/*.key
 
 # nginx static websites except one
 roles/xray_nginx/files/var/www/*
@@ -27,3 +29,4 @@ wgcf
 # installed roles
 roles/geerlingguy.certbot
 roles/geerlingguy.docker
+
