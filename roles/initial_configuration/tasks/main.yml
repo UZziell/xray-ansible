@@ -10,10 +10,6 @@
     marker: "# {mark} ANSIBLE MANAGED BLOCK - custom hosts"
   when: add_custom_etc_hosts_entries
 
-- name: Apply personal configs
-  ansible.builtin.include_tasks: personal_configs.yml
-  when: apply_personal_configs
-
 - name: Set private repo for apt sources.list
   ansible.builtin.include_tasks: private_apt_sources_list.yml
   when:
@@ -38,3 +34,7 @@
 - name: Configure sshd
   ansible.builtin.include_tasks: configure_sshd.yml
   when: configure_sshd
+
+- name: Apply personal configs
+  ansible.builtin.include_tasks: personal_configs.yml
+  when: apply_personal_configs
