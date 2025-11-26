@@ -168,6 +168,13 @@
     enabled: true
   when: warp_initial_check.failed
 
+# - name: Check IPv6
+#   ansible.builtin.command: "curl -6 -sfL -m5 https://ipinfo.io"
+#   register: ipinfo_ipv6_result
+#   changed_when: false
+#   failed_when: ipinfo_ipv6_result is failed or "'cloudflare' not in ipinfo_ipv6_result.stdout|lower"
+#   ignore_errors: true
+
 - name: Ensure WARP has been activated successfully (IPv4-IPv6)
   ansible.builtin.uri:
     url: https://ipinfo.io
@@ -178,28 +185,27 @@
   # failed_when: true
   failed_when: "'cloudflare' not in ipinfo_ipv4ipv6_result.content|lower"
   ignore_errors: true
-  when: warp_initial_check.failed
 
 - name: Update Wireguard configuratoin (IPv4-only)
   ansible.builtin.lineinfile:
     path: "{{ wireguard_config }}"
     state: absent
     regexp: ^Address = .*\/128$
-  when: warp_initial_check.failed and ipinfo_ipv4ipv6_result.failed
+  when: ipinfo_ipv4ipv6_result.failed
 
 - name: Update Wireguard configuratoin - Delete IPv6 AllowdIPS (IPv4-only)
   ansible.builtin.replace:
     path: "{{ wireguard_config }}"
     regexp: ',([a-fA-F0-9]{0,4}:){1,7}([a-fA-F0-9]{1,4})?\/[0-9]{1,3}'
     replace: ""
-  when: warp_initial_check.failed and ipinfo_ipv4ipv6_result.failed
+  when: ipinfo_ipv4ipv6_result.failed
 
 - name: Start and Enable WARP (IPv4-only)
   ansible.builtin.systemd:
     name: wg-quick@wg0
     state: restarted
     enabled: true
-  when: warp_initial_check.failed and ipinfo_ipv4ipv6_result.failed
+  when: ipinfo_ipv4ipv6_result.failed
 
 - name: Ensure WARP has been activated successfully (IPv4-only)
   ansible.builtin.uri:
@@ -210,11 +216,32 @@
   register: ipinfo_ipv4_result
   failed_when: "'cloudflare' not in ipinfo_ipv4_result.content|lower"
   ignore_errors: true
-  when: warp_initial_check.failed and ipinfo_ipv4ipv6_result.failed
+
+- name: Ensure IPv6 is disabled when it's black-listed by Google (when WARP is IPv4-only)
+  when: ipinfo_ipv4_result is succeeded
+  block:
+    - name: Check if Google has blocked our IPv6
+      ansible.builtin.command: "curl -6 -sfL -m5 https://gemini.google.com"
+      register: google_ipv6_result
+      changed_when: false
+      failed_when: google_ipv6_result is failed or "'forbidden' in google_ipv6_result.stdout|lower"
+      ignore_errors: true
+
+    - name: Ensure IPv6 stack is disabled
+      ansible.posix.sysctl:
+        name: "{{ item.name }}"
+        value: "{{ item.value }}"
+        state: present
+        sysctl_set: true
+      loop:
+        - { name: net.ipv6.conf.all.disable_ipv6, value: 1 }
+        - { name: net.ipv6.conf.default.disable_ipv6, value: 1 }
+        - { name: net.ipv6.conf.lo.disable_ipv6, value: 1 }
+      when: google_ipv6_result is failed
 
 - name: Stop and Disable WARP if both IPv4-only and IPv4-IPv6 checks failed
   ansible.builtin.systemd:
     state: stopped
     name: wg-quick@wg0
     enabled: false
-  when: warp_initial_check.failed and ipinfo_ipv4ipv6_result.failed and ipinfo_ipv4_result.failed
+  when: ipinfo_ipv4ipv6_result.failed and ipinfo_ipv4_result.failed
