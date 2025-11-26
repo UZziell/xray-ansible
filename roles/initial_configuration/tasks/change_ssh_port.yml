@@ -39,15 +39,16 @@
   notify: Restart sshd service
   when:
     - ansible_os_family == 'Debian'
-
+    - not ansible_facts['distribution'] == "Ubuntu"
+    - not ansible_facts['distribution_version'] == "24.04" and not ansible_facts['distribution_version'] == "22.04"
 
 - name: Setup alternate SSH port (ssh.sock)
   ansible.builtin.blockinfile:
     path: /etc/systemd/system/ssh.socket.d/listen_{{ alternative_ssh_port }}.conf
     block: |
       [Socket]
-      ListenStream=
-      ListenStream={{ alternative_ssh_port }}
+      ListenStream=0.0.0.0:{{ alternative_ssh_port }}
+      ListenStream=[::]:{{ alternative_ssh_port }}
     create: true
   notify: Restart ssh socket
   when:
