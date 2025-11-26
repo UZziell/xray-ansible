@@ -101,7 +101,7 @@
       name: fail2ban
       state: restarted
       enabled: true
-    when: fail2ban_config_install_result.chaned
+    when: fail2ban_config_install_result.changed
 
 - name: Sysctl | basic settings and optimizations
   ansible.posix.sysctl:
