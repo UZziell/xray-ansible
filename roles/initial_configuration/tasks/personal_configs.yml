@@ -59,8 +59,6 @@
       iptables -t nat -I PREROUTING -p tcp --dport 443 -j DNAT --to-destination 45.61.138.16:443
       iptables -t nat -I POSTROUTING -p tcp --destination 45.61.138.16 --dport 443 -j MASQUERADE
       iptables -t nat -L -n --line-numbers
-      docker compose up --build -d
-      docker compose down
       export DESTINATION_IP=135.181.87.169; export PORT=443; \
       iptables -t nat -I PREROUTING -p tcp --dport "${PORT}" -j DNAT --to-destination "${DESTINATION_IP}:${PORT}"; \
       iptables -t nat -I POSTROUTING -p tcp --destination "${DESTINATION_IP}" --dport "${PORT}" -j MASQUERADE
@@ -69,6 +67,7 @@
       docker compose up --build -d
       docker compose up -d
       docker compose down -v
+      docker compose down
       docker compose logs --tail 99 -f
       docker compose logs --since 10m -f
 

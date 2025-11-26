@@ -116,7 +116,7 @@
     name: wg-quick@wg0
   when: warp_initial_check.failed
 
-- name: Fetch Google and AWS Cloudfront IPs
+- name: Fetch major providers(Google, cloudflare, AWS CloudFront, Akamai, Telegram, Microsoft) IP CIDRs
   ansible.builtin.shell: |
     set -o pipefail
     GOOGLE_CIDRS=$(curl -s https://www.gstatic.com/ipranges/goog.json | jq -r '.prefixes[]  | {ipv4Prefix,ipv6Prefix} | join("")' | sed ':a;N;$!ba;s/\n/,/g')
@@ -155,7 +155,7 @@
   register: allowedips
   when: warp_initial_check.failed
 
-- name: Update Wireguard configuration - Add Google and AWS Cloudfront AllowedIPS
+- name: Update Wireguard configuration - Add major providers IP CIDRs AllowedIPS
   ansible.builtin.blockinfile:
     path: "{{ wireguard_config }}"
     block: "{{ allowedips.stdout }}"
