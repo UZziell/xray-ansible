@@ -9,8 +9,8 @@ port = ssh
 {% endif %}
 
 filter = sshd
-logpath = /var/log/auth.log
-maxretry = 6
+backend = systemd
+maxretry = 3
 findtime = 300
 bantime = 3600
 ignoreip = 127.0.0.1
