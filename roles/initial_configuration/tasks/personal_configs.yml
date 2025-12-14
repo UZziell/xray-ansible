@@ -64,6 +64,7 @@
       iptables -t nat -I POSTROUTING -p tcp --destination "${DESTINATION_IP}" --dport "${PORT}" -j MASQUERADE
       last -f /var/log/btmp | less
       last -f /var/log/wtmp | less
+      curl -v --socks5 socks5h://localhost:2080 icanhazip.com
       docker compose up --build -d
       docker compose up -d
       docker compose down -v
@@ -133,3 +134,9 @@
     - { name: net.ipv6.conf.default.disable_ipv6, value: 0 }
     - { name: net.ipv6.conf.all.forwarding, value: 1 }
     - { name: net.netfilter.nf_conntrack_max, value: 65536 }
+
+- name: Ensure rpcbind service is stopped and disabled
+  ansible.builtin.systemd_service:
+    name: rpcbind
+    state: stopped
+    enabled: false
