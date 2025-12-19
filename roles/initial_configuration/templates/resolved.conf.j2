@@ -1,9 +1,19 @@
 [Resolve]
-DNS={{ main_dns_servers }}
-FallbackDNS={{ fallback_dns_servers }}
+DNS={{ resolved_main_dns_servers }}
+FallbackDNS={{ resolved_fallback_dns_servers }}
+#Domains=
 DNSSEC=allow-downgrade
-DNSOverTLS=false
+DNSOverTLS=no
+#MulticastDNS=no
 LLMNR=no
-Cache=yes
+Cache=no-negative
 CacheFromLocalhost=no
+
+{% if resolved_alternative_local_listen_port %}
+DNSStubListener=no
+DNSStubListenerExtra=127.0.0.53:{{ resolved_alternative_local_listen_port }}
+{% endif %}
+
 ReadEtcHosts=yes
+#ResolveUnicastSingleLabel=no
+#StaleRetentionSec=0

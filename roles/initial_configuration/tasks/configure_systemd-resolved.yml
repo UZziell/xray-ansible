@@ -14,7 +14,7 @@
         src: /etc/resolv.conf
         dest: /etc/resolv.conf.original
 
-    - name: Link /etc/resolv.conf to stub-resolver
+    - name: Ensure /etc/resolv.conf is symlinked to stub-resolver
       ansible.builtin.file:
         src: /run/systemd/resolve/stub-resolv.conf
         dest: /etc/resolv.conf
