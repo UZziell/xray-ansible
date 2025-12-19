@@ -39,6 +39,10 @@
   ansible.builtin.include_tasks: configure_systemd-resolved.yml
   when: configure_systemd_resolved
 
+- name: Harden linux
+  ansible.builtin.include_tasks: harden_linux.yml
+  when: harden_linux
+
 - name: Apply personal configs
   ansible.builtin.include_tasks: personal_configs.yml
   when: apply_personal_configs

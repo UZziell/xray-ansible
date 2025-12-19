@@ -1,0 +1,37 @@
+- name: Ensure sshd PasswordAuthentication is disabled
+  ansible.builtin.lineinfile:
+    path: /etc/ssh/sshd_config.d/90-disable-PasswordAuthentication.conf
+    line: "PasswordAuthentication no"
+    validate: "sshd -t -f %s"
+    create: true
+  notify: Restart sshd service
+  when: harden_disable_ssh_password_authentication
+
+- block:
+  - name: Install fail2ban sshd jail config
+    ansible.builtin.template:
+      src: fail2ban_sshd.conf.j2
+      dest: /etc/fail2ban/jail.d/fail2ban_sshd.conf
+      owner: root
+      group: root
+      mode: "0644"
+    register: fail2ban_config_install_result
+
+  - name: Restart and enable fail2ban service
+    ansible.builtin.systemd:
+      name: fail2ban
+      state: restarted
+      enabled: true
+    when: fail2ban_config_install_result.changed
+
+- name: Ensure rpcbind service is stopped and disabled
+  block:
+    - name: Gather service facts
+      ansible.builtin.service_facts:
+
+    - name: Disable rpcbind
+      ansible.builtin.systemd_service:
+        name: rpcbind
+        state: stopped
+        enabled: false
+      when: "'rpcbind.service' in ansible_facts.services"
