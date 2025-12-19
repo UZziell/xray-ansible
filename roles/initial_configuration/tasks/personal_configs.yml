@@ -46,7 +46,7 @@
       journalctl -u xray --since -48h | grep accepted | awk '{print $8}' | grep -Po '(\d\d?\d?\.){3}\d\d?\d?'  | sort | uniq -d -c | sort -h
       fail2ban-client unban -all
       fail2ban-client restart
-      fail2ban-client status xray
+      fail2ban-client status sshd
       openssl req -x509 -newkey rsa:2048 -keyout domain-key.pem -out domain.pem -sha256 \
       -nodes -days 3650 -subj "/CN=google.com" -addext "subjectAltName = DNS:google.com, DNS:*.google.com"
       openssl req -x509 -nodes -days 365 -newkey ec:<(openssl ecparam -name secp256k1) -keyout domain-key.pem -out domain.pem -subj "/CN=google.com"
@@ -64,6 +64,11 @@
       iptables -t nat -I POSTROUTING -p tcp --destination "${DESTINATION_IP}" --dport "${PORT}" -j MASQUERADE
       last -f /var/log/btmp | less
       last -f /var/log/wtmp | less
+      curl -v https://www.gstatic.com/generate_204
+      curl -v https://ipinfo.io
+      curl -v4 https://ipinfo.io
+      curl -v6 https://icanhazip.com
+      curl -v https://ifconfig.io
       curl -v --socks5 socks5h://localhost:2080 icanhazip.com
       docker compose up --build -d
       docker compose up -d
@@ -85,23 +90,6 @@
     line: set paste
     create: true
     mode: "0600"
-
-- block:
-  - name: Install fail2ban sshd jail config
-    ansible.builtin.template:
-      src: fail2ban_sshd.conf.j2
-      dest: /etc/fail2ban/jail.d/fail2ban_sshd.conf
-      owner: root
-      group: root
-      mode: "0644"
-    register: fail2ban_config_install_result
-
-  - name: Restart and enable fail2ban service
-    ansible.builtin.systemd:
-      name: fail2ban
-      state: restarted
-      enabled: true
-    when: fail2ban_config_install_result.changed
 
 - name: Sysctl | basic settings and optimizations
   ansible.posix.sysctl:
@@ -134,9 +122,3 @@
     - { name: net.ipv6.conf.default.disable_ipv6, value: 0 }
     - { name: net.ipv6.conf.all.forwarding, value: 1 }
     - { name: net.netfilter.nf_conntrack_max, value: 65536 }
-
-- name: Ensure rpcbind service is stopped and disabled
-  ansible.builtin.systemd_service:
-    name: rpcbind
-    state: stopped
-    enabled: false
