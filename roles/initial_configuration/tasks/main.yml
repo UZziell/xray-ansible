@@ -31,9 +31,9 @@
   ansible.builtin.include_tasks: users_and_groups.yml
   when: create_users_and_groups
 
-- name: Configure sshd
-  ansible.builtin.include_tasks: configure_sshd.yml
-  when: configure_sshd
+- name: Configure sshd to change default port
+  ansible.builtin.include_tasks: change_ssh_port.yml
+  when: change_ssh_port
 
 - name: Configure systemd-resolved
   ansible.builtin.include_tasks: configure_systemd-resolved.yml
