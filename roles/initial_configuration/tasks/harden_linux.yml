@@ -1,6 +1,6 @@
 - name: Ensure sshd PasswordAuthentication is disabled
   ansible.builtin.lineinfile:
-    path: /etc/ssh/sshd_config.d/90-disable-PasswordAuthentication.conf
+    path: /etc/ssh/sshd_config.d/10-disable-PasswordAuthentication.conf
     line: "PasswordAuthentication no"
     validate: "sshd -t -f %s"
     create: true
