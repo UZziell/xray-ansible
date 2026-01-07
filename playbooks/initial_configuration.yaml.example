@@ -1,0 +1,12 @@
+---
+- name: Initial configuration and setup WARP
+  hosts:
+    - vps01
+  become: true
+  vars:
+    timezone: UTC
+    initial_password_sal:
+
+  roles:
+    - initial_configuration
+    - warp

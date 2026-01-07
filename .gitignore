@@ -5,7 +5,7 @@ venv
 # playbooks, inventories and hosts
 **/inventory.y*ml
 **/playbook.y*ml
-**/playbooks
+**/playbooks/*.y*ml
 **/inventories
 **/hosts
 

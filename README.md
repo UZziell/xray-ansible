@@ -1,34 +1,14 @@
-# Xray Ansible Role
+# Proxy Ansible
 
-An Ansible Role to deploy different [Xray](https://github.com/XTLS/Xray-corex) setups along with Nginx and [WARP](https://cloudflarewarp.com/) on Linux (Tested on Debian and Ubuntu)
-These are what's included:
-* [3x-ui](https://github.com/MHSanaei/3x-ui)
-* [marzban](https://github.com/Gozargah/Marzban)
-* [WARP](https://cloudflarewarp.com/)
+A collection of Ansible Roles to deploy different proxies([Xray](https://github.com/XTLS/Xray-corex), Sing-box) along with Nginx and [WARP](https://cloudflarewarp.com/) on Linux (Tested on Debian and Ubuntu)
 
-## Role Variables
+Currently maintained roles:
+<!-- * [3x-ui](https://github.com/MHSanaei/3x-ui) -->
+<!-- * [marzban](https://github.com/Gozargah/Marzban) -->
+* WARP
+* initial_configuration
 
-Available variables are listed below:
-
-    certbot_admin_email: Domain-Maintainer@mail.com
-    certbot_create_method: standalone
-    certbot_create_if_missing: true
-    certbot_certs:
-    - domains:
-        - example.com
-    - domains:
-        - example2.com
-
-    xray_log_level: warning
-    trojan_shadowsocks_password: TORJAN_SHADOWSOCKS_INBOUNDS_PASSWORD
-    vless_vmess_uuid: 7730e289-a907-4d89-82c5-b73d26d98aea
-    subscription_filename: mysub
-
-    xray_domains:
-    - example.com
-    - example2.com
-
-## Requirements
+<!-- ## Requirements
 
 - [certbot](https://galaxy.ansible.com/geerlingguy/certbot/) is used to get certificates for the given domains.
 
@@ -40,58 +20,20 @@ They can be installed with the following command(provided that ansible-galaxy is
 ansible-galaxy install -r requirements.yml
 ```
 
-- an A type DNS record of the given domain should point to the public IP adress of the server
+- an A type DNS record of the given domain should point to the public IP adress of the server -->
 
-## Example
+## How to use
+1. Create `inventory.yaml` from template
 
-### playbook.yml
+    Copy `inventory.yaml.example` to `inventory.yaml` and replace **ansible_host** and **server credentials** with proper values.
 
-```yaml
-- name: Setup Xray server
-  hosts:
-    - xray
-  become: true
-  vars:
-    # Certbot
-    certbot_admin_email: domain-maintainer@mail.com
-    certbot_create_method: standalone
-    certbot_create_if_missing: true
-    certbot_certs:
-      - domains:
-          - example.com
-      - domains:
-          - example2.com
+2. Create `initial_configuration.yaml` playbook from template
 
-    # Xray
-    xray_log_level: warning
-    trojan_shadowsocks_password: TORJAN_SHADOWSOCKS_INBOUNDS_PASSWORD
-    vless_vmess_uuid: 7730e289-a907-4d89-82c5-b73d26d98aea
-    subscription_filename: subs
+    Copy `playbooks/initial_configuration.yaml.example` to `playbooks/initial_configuration.yaml`. Add/change variables based on the defaults [roles/initial_configuration/defaults/main.yml](roles/initial_configuration/defaults/main.yml).
+    Also ensure to set the `initial_password_salt` variable which is used to set password for created users.
 
-    xray_domains:
-      - example.com
-      - example2.com
-
-  roles:
-    - fetch_public_ips
-    - geerlingguy.certbot
-    - xray_nginx
-    - warp
-```
-
-### inventory.yml
-
-```yaml
-all:
-  hosts:
-    xray:
-      ansible_host: x.x.x.x # Server public IP
-      ansible_user: root
-      ansible_ssh_private_key_file: ~/.ssh/id_rsa # The ssh-key that is already added to server
-```
-
-### running the playbook
+3. Finally, run the playbook
 
 ```bash
-ansible-playbook -i inventory.yml playbook.yml
+ansible-playbook -i inventory.yaml playbooks/initial_configuration.yaml
 ```
