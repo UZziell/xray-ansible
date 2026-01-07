@@ -1,0 +1,43 @@
+resolved_main_dns_servers: 1.1.1.1#cloudflare-dns.com 185.222.222.222#dot.sb 9.9.9.9#dns.quad9.net 8.8.8.8#dns.google 2606:4700:4700::1111#cloudflare-dns.com 2620:fe::9#dns.quad9.net 2001:4860:4860::8888#dns.google
+resolved_fallback_dns_servers: 1.1.1.1 8.8.8.8
+
+set_netplan_nameservers: false
+add_custom_etc_hosts_entries: true
+create_users_and_groups: true
+force_change_users_password: false
+force_change_root_password: false
+apply_personal_configs: true
+private_apt_sources_list: false
+install_initial_packages: true
+install_docker: true
+change_ssh_port: false
+alternative_ssh_port: 22222
+configure_systemd_resolved: false
+resolved_alternative_local_listen_port: 5300
+harden_linux: true
+
+# Change with CAUTION
+force_dist_upgrade: false
+harden_disable_ssh_password_authentication: false
+skip_reboot: true
+
+timezone: UTC
+
+initial_configuration_pkg_list:
+  - curl
+  - wget
+  - vim
+  - gnupg
+  - iptables
+  - iptables-persistent
+  - tmux
+  - tcpdump
+  - htop
+  - nload
+  - vnstat
+  - netcat-openbsd
+  - sudo
+  - cron
+  - iperf3
+  - fail2ban
+  - sysstat
