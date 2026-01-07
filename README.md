@@ -23,17 +23,20 @@ ansible-galaxy install -r requirements.yml
 - an A type DNS record of the given domain should point to the public IP adress of the server -->
 
 ## How to use
-1. Create `inventory.yaml` from template
+1. Install dependencies with ansible-galaxy
+    ```
+    ansible-galaxy install -r requirements.yml
+    ```
+2. Create `inventory.yaml` from template
 
     Copy `inventory.yaml.example` to `inventory.yaml` and replace **ansible_host** and **server credentials** with proper values.
 
-2. Create `initial_configuration.yaml` playbook from template
+3. Create `initial_configuration.yaml` playbook from template
 
     Copy `playbooks/initial_configuration.yaml.example` to `playbooks/initial_configuration.yaml`. Add/change variables based on the defaults [roles/initial_configuration/defaults/main.yml](roles/initial_configuration/defaults/main.yml).
     Also ensure to set the `initial_password_salt` variable which is used to set password for created users.
 
-3. Finally, run the playbook
-
-```bash
-ansible-playbook -i inventory.yaml playbooks/initial_configuration.yaml
-```
+4. Finally, run the playbook
+    ```bash
+    ansible-playbook -i inventory.yaml playbooks/initial_configuration.yaml
+    ```
